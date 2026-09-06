@@ -246,7 +246,7 @@ python scripts/train_arousal_model.py                # A/B CV + final model + cr
 
 python -m pytest tests/ -m "not quality_gate"         # unit+integration, no training required, ~10s
 python -m pytest tests/quality_gates/                 # reads latest.json, enforces §6 thresholds
-python -m pytest tests/                               # everything — 286 tests as of this pass, ~21s
+python -m pytest tests/                               # everything — 287 tests as of this pass, ~21s
 
 python scripts/build_demo_session.py                  # real model + real audio → artifacts/sessions/
 python -m uvicorn web.backend:app --reload             # dashboard at http://localhost:8000

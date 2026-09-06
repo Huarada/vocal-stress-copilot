@@ -315,7 +315,7 @@ python -m pytest tests/quality_gates/           # reads artifacts/metrics/latest
 python -m pytest tests/                         # everything, ~20s
 ```
 
-286 tests as of this writing — all passing, no network, no live API key, no real
+287 tests as of this writing — all passing, no network, no live API key, no real
 microphone required (the handful of things that genuinely can't be tested that way are
 named explicitly in [ARCHITECTURE.md §7b](ARCHITECTURE.md) and in code comments, not
 silently skipped). Every bug that ever reached running code has a regression test and a
@@ -428,7 +428,7 @@ Stated plainly, because the alternative is a judge finding them first:
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — full system design, data flow, and the honest
   record of what's confirmed live vs. still assumed.
 - **[ADR.md](ADR.md)** — every architectural decision made on this project, its
-  trade-offs, and a 44-row catalogue of every bug that ever reached running code, paired
+  trade-offs, and a 46-row catalogue of every bug that ever reached running code, paired
   with the test that now guards it.
 - **[SKILLS.md](SKILLS.md)** — hard rules, settled facts, and the day-to-day commands
   for working on this codebase.

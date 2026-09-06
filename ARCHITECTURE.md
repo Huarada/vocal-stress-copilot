@@ -309,7 +309,7 @@ z-scores it cannot support.
 
 Domain layer, all dataset/audio/model infrastructure, the training and cross-corpus
 evaluation services, the evidence pipeline, and both agent adapters (Voice Agent client,
-LLM Gateway / Analyst Agent client) are implemented and covered by **286 passing tests**
+LLM Gateway / Analyst Agent client) are implemented and covered by **287 passing tests**
 (unit + integration against real RAVDESS/MUStARD++ audio, plus 4 quality-gate tests
 below) — see SKILLS.md §6b for how to run them.
 
@@ -504,7 +504,7 @@ says so instead of failing opaquely. The chat endpoint's full tool-calling round
 `httpx.MockTransport` in `tests/unit/test_web_backend.py`, exercising the exact same
 `AnalystAgent`/`build_tool_handlers` code the live path uses.
 
-**286 tests pass** (unit + integration + quality gates) as of this implementation pass.
+**287 tests pass** (unit + integration + quality gates) as of this implementation pass.
 To view the dashboard: `python -m uvicorn web.backend:app --reload` (from the repo root,
 package installed via `pip install -e .`), then open `http://localhost:8000`.
 

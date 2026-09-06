@@ -66,6 +66,7 @@ useful part of the record.
 | [043](#adr-043) | A wrong guess must degrade, never flood | accepted |
 | [044](#adr-044) | Give the Interview Agent exactly one tool, on the entitlement that actually grants it | accepted |
 | [045](#adr-045) | Re-read the docs before building on a working capability; don't move the Analyst Agent to voice | accepted |
+| [046](#adr-046) | Make TensorFlow an opt-in cost, not a fixed one, for the dashboard deployment | accepted |
 
 ---
 
@@ -219,7 +220,7 @@ never outward.
 
 **Consequences.**
 - Gained: the domain and application layers run in milliseconds with no TensorFlow, no
-  audio hardware, and no network — which is why 286 tests run in ~21 seconds.
+  audio hardware, and no network — which is why 287 tests run in ~21 seconds.
 - Gained: real swappability. Replacing the CNN with a wav2vec2 head, or AssemblyAI with
   another vendor, is a new adapter, not a rewrite.
 - **Given up**: directness. A file count and an indirection layer that a single-file
@@ -1846,13 +1847,59 @@ stay as a safety net for anything this specific search didn't surface.
 
 ---
 
+<a id="adr-046"></a>
+## ADR-046 — Make TensorFlow an opt-in cost, not a fixed one, for the dashboard deployment
+
+**Status**: accepted (2026-09-06)
+
+**Context.** Preparing to host `web/backend.py` publicly (for the submission's required
+"Application URL") surfaced that `backend.py` imported `live_capture` at module top —
+which imports `LiveInterviewRunner`, which imports `KerasArousalClassifier`, which
+imports TensorFlow. Every process running this file paid TensorFlow's full import cost
+and memory footprint, whether or not that process would ever actually run live capture.
+Measured directly: importing `backend` with no `ASSEMBLYAI_API_KEY` set took the same
+~15-20s and 500MB+ RAM as a live-capture-capable process, for a dashboard that never
+touches the classifier at all — session data is pre-computed JSON, artifacts are
+pre-rendered PNGs, and the Analyst Agent is a plain `httpx` client to the LLM Gateway.
+
+This matters concretely for hosting: most free tiers cap RAM well under what a resident
+TensorFlow import needs, and a public deployment intended only to showcase the
+dashboard (ADR-045's decision not to expose live capture with a real key to arbitrary
+internet traffic makes this the intended shape of that deployment) would risk an
+out-of-memory crash for a dependency it structurally cannot use.
+
+**Decision.** `from live_capture import run_capture_session` moved from module scope in
+`backend.py` to inside `interview_capture()`'s body, after the `MissingConfigError`
+check. A deployment with no API key configured returns from that check before reaching
+the import line, so it never loads `live_capture`, `LiveInterviewRunner`, or TensorFlow.
+Confirmed by direct measurement, not assumed: import time dropped to 0.57s with
+`tensorflow` absent from `sys.modules` entirely.
+`test_live_capture_import_is_lazy_not_module_level` guards the import site itself
+(inspects `backend.py`'s own source for a module-level import line), not just the
+measured outcome, so a future edit re-adding it at module scope fails loudly.
+
+**Consequences.**
+- Gained: a dashboard-only public deployment can run on a free/low-memory tier that a
+  TensorFlow-resident process could not.
+- Gained: faster cold starts for every deployment shape, including local dev when only
+  browsing past sessions.
+- **Given up**: the first real live-capture request on a running dashboard-only process
+  now pays TensorFlow's import cost at that moment instead of at startup — a real
+  latency spike on the first call, invisible until then. Acceptable here because that
+  path is deliberately not exposed on a public host in the first place (ADR-045).
+- **Given up**: `live_capture`'s own transitive TensorFlow dependency is unchanged;
+  this defers the cost, it doesn't remove it. A deployment that legitimately needs live
+  capture (a properly provisioned host with its own key) still needs the RAM.
+
+---
+
 ---
 
 <a id="appendix-a"></a>
 ## Appendix A — Bug catalogue
 
 Every bug that reached running code, and what now prevents its recurrence. Each row's
-guard is a real test in the suite (286 passing at time of writing).
+guard is a real test in the suite (287 passing at time of writing).
 
 | # | How it showed up | Root cause | What prevents recurrence |
 |---|------------------|------------|--------------------------|
@@ -1901,8 +1948,9 @@ guard is a real test in the suite (286 passing at time of writing).
 | 43 | The live capture page froze the browser tab after ~3 real exchanges; the session log showed why — a wall of base64 characters followed by `'type': 'reply.audio'` | ADR-040's guessed payload key ("audio") was wrong; every real event hit the fallback, which interpolated the ENTIRE raw event (base64 blob included) into a status message, appended as an uncapped DOM node per chunk — dozens of chunks per reply compounded fast | [ADR-043](#adr-043): `_on_reply_audio` tries six candidate keys instead of one guess; the no-match fallback reports field names/shapes only, never values; `_status()` truncates to 500 chars at its one choke point; `capture.js`'s log independently caps line length and count |
 | 44 | `_on_reply_audio`'s payload key was left as a best-effort guess-among-several (ADR-043) rather than a confirmed fact, for the time it took to actually read AssemblyAI's own documentation | The first live session that produced audible playback was treated as "good enough" — it worked, so the exact key was never pinned down, even though the real answer was sitting in already-public docs | [ADR-045](#adr-045): confirmed `"data"` from the Voice Agent API walkthrough's own example handler; `_REPLY_AUDIO_CANDIDATE_KEYS` reordered accordingly, `test_on_reply_audio_decodes_base64_under_the_confirmed_real_key` added |
 | 45 | Seven files (three composition-root scripts, four integration tests) had a local Windows username and folder layout hardcoded into dataset-path constants, discovered only when auditing the repo for credential/cost risk minutes after the first public GitHub push | The strings were never a credential and so never tripped the pre-commit secret search (which specifically grepped for the API key and generic token patterns) — they are a DIFFERENT class of exposure (identifying, not authenticating), and a search built for one class missed the other | Each constant now derives its path from `Path(__file__).resolve()` relative to the repo, with `VOICESTRESS_HACKATHON_ROOT` as an explicit override — zero personal strings in source, identical behavior on the machine that already had the data. Verified by re-running the full integration suite, which exercises real RAVDESS audio through the new path resolution rather than skipping |
+| 46 | Preparing to host the dashboard publicly surfaced that every process running `backend.py` — including a pure dashboard deployment that never runs live capture — paid TensorFlow's full ~15-20s import time and 500MB+ memory footprint | `live_capture` was imported at module top rather than where it's actually used, so the cost was fixed rather than conditional on the feature actually being reachable (no API key, per ADR-045, means it never is on a public host) | [ADR-046](#adr-046): import moved inside the route handler, after the missing-key check; confirmed by direct measurement (0.57s, no tensorflow in sys.modules) rather than assumed; `test_live_capture_import_is_lazy_not_module_level` guards the import site itself |
 
-### The pattern across all forty-five
+### The pattern across all forty-six
 
 Bugs 1, 2, 3, 5, 6 came from **trusting names over artifacts** — a layer name, a field
 name, a variable name, a summary line. Bugs 7, 8, 9, 12, 13, 14 came from **trusting

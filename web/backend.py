@@ -33,7 +33,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from live_capture import run_capture_session
 from voicestress.config import AssemblyAISettings, MissingConfigError
 from voicestress.domain.entities import InterviewSession
 from voicestress.domain.value_objects import SpeakerId
@@ -250,6 +249,13 @@ async def interview_capture(
     MissingConfigError is caught HERE, not via the `@app.exception_handler` below —
     that handler wraps HTTP responses and does not apply to a WebSocket's connection
     handshake, which has no equivalent response channel until after `ws.accept()`.
+
+    `run_capture_session` is imported LAZILY, right before use, not at module top —
+    it pulls in `LiveInterviewRunner`, which pulls in TensorFlow (for the arousal
+    classifier). A pure dashboard deployment with no ASSEMBLYAI_API_KEY configured
+    (e.g. a low-memory public host that only shows the demo session, ADR-046) never
+    reaches this line, so it never pays TensorFlow's import time or its 500MB+ memory
+    footprint — the `except MissingConfigError` branch above returns first.
     """
     try:
         settings = AssemblyAISettings.from_env()
@@ -260,6 +266,8 @@ async def interview_capture(
         )
         await ws.close(code=1008)
         return
+    from live_capture import run_capture_session
+
     await run_capture_session(ws, settings=settings, model_path=MODEL_PATH, connect=connect)
 
 

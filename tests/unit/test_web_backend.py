@@ -257,3 +257,24 @@ def test_get_session_normalizes_legacy_turns_through_domain_layer(client, sessio
     assert turn["prosody_raw"]["f0_detected"] is True  # real pitch values -> True
     assert turn["stress"]["duration_ms"] == 2000       # computed, not stored
     assert turn["stress"]["score_reliable"] is True    # 2000ms is above the floor
+
+
+def test_live_capture_import_is_lazy_not_module_level():
+    """ADR-046: `live_capture` (and transitively TensorFlow, via LiveInterviewRunner)
+    used to be imported at module top, so even a pure dashboard deployment with no
+    ASSEMBLYAI_API_KEY paid TensorFlow's ~500MB+ footprint and import time on every
+    cold start. Confirmed fixed by direct measurement: importing backend.py with no
+    key set dropped from ~15-20s (TF loading) to 0.57s, with 'tensorflow' absent from
+    sys.modules entirely. This guards the import site itself, not just the outcome —
+    a top-level import re-added later would break dashboard-only hosting silently."""
+    import inspect
+
+    source = inspect.getsource(backend_module)
+    for line in source.splitlines():
+        if line.startswith("from live_capture import") or line.startswith("import live_capture"):
+            pytest.fail(
+                f"live_capture is imported at module level ({line!r}) — this pulls in "
+                f"TensorFlow for every backend.py process, including pure dashboard "
+                f"deployments with no ASSEMBLYAI_API_KEY. Move it inside the route "
+                f"function, right before use."
+            )
