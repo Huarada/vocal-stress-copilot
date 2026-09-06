@@ -399,6 +399,17 @@ speech and name, and that never belongs in version control regardless of who ran
 
 Stated plainly, because the alternative is a judge finding them first:
 
+- **The hosted URL's first request after a quiet period can be slow, or fail once.**
+  The free hosting tier spins the instance down after inactivity; the first hit after
+  that can take ~30-60s to wake up, and — confirmed live, ADR-048 — a WebSocket
+  connection arriving during that exact window can fail outright with no error message
+  rather than waiting for the instance the way a normal HTTP request does. If the
+  hosted dashboard seems unresponsive, reload once and wait a few seconds.
+- **Live capture is not enabled on the hosted URL, on purpose.** The public deployment
+  has no `ASSEMBLYAI_API_KEY` configured — see [Why the AssemblyAI integration is
+  deep](#why-the-assemblyai-integration-is-deep-not-decorative) and ADR-045/047/048 for
+  why. It runs fully locally (see [Running it](#running-it)); the demo video shows it.
+
 - **Cross-corpus accuracy is 0.597** — real signal, not a strong classifier. See
   [above](#real-results-honestly-reported) for why the product design doesn't depend on
   it being stronger.

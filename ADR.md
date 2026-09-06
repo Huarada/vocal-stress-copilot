@@ -68,6 +68,7 @@ useful part of the record.
 | [045](#adr-045) | Re-read the docs before building on a working capability; don't move the Analyst Agent to voice | accepted |
 | [046](#adr-046) | Make TensorFlow an opt-in cost, not a fixed one, for the dashboard deployment | accepted |
 | [047](#adr-047) | A public dashboard deploy ships with no API key by default | accepted |
+| [048](#adr-048) | Confirmed live: the deployed no-key default fails safely from a real browser | accepted |
 
 ---
 
@@ -1958,6 +1959,60 @@ demonstrated in the video instead, run locally with a real key.
   could still surface something this simulation didn't. The first real deploy is still
   the first real test of Render specifically, consistent with this project's own
   standard for what "confirmed" means elsewhere (ARCHITECTURE.md Section 7b).
+
+---
+
+<a id="adr-048"></a>
+## ADR-048 — Confirmed live: the deployed no-key default fails safely from a real browser
+
+**Status**: accepted (2026-09-06)
+
+**Context.** ADR-047's decision — ship the public Render URL with no
+`ASSEMBLYAI_API_KEY`, so live capture rejects cleanly instead of exposing a cost-bearing
+surface — was verified locally in an isolated venv before deploying, but not yet
+against the actual hosted instance from a real browser. The first real attempt produced
+`[ws] connection error` / `code=1006` with no further detail: consistent with a raw,
+unexplained failure, and worth investigating rather than assuming either "it's broken"
+or "it's fine."
+
+Two independent checks resolved it. First, connecting directly to the deployed
+`/ws/interview` with a plain Python WebSocket client (bypassing the browser entirely)
+succeeded immediately and returned the exact intended message
+(`"Voice Agent not configured: ..."`) — proving the deployed app and Render's
+WebSocket routing both work correctly. Second, comparing the user's two browser
+attempts line by line was the actual diagnostic: the first attempt's log jumped
+straight from `[mic] AudioContext running...` to `[ws] connection error`, with no
+`[ws] connected, handshake sent` line ever appearing — meaning the connection never
+completed opening at all. The second attempt, run shortly after (by which point the
+Python test had already reached the instance), printed `[ws] connected, handshake
+sent` followed by the correct `[error] Voice Agent not configured...` message, then
+closed. Same code, same deployment, two different outcomes purely as a function of
+whether the free-tier instance was already warm.
+
+**Decision.** No code change. This confirms, rather than alters, ADR-047: the
+intended safe-default behavior works correctly end to end, including from a real
+browser against the real hosted URL — once the instance is warm. The remaining,
+accepted gap is operational, not architectural: a Render free-tier instance that has
+spun down after inactivity can fail a WebSocket upgrade attempt on the very first hit
+with a raw, unexplained `1006`, because (unlike a stateless HTTP request, which Render
+can hold and retry transparently while the container boots) a half-open WebSocket
+upgrade during that boot window appears to be dropped rather than queued.
+
+**Consequences.**
+- Gained: the no-key safety design (ADR-045/047) is now confirmed working in the one
+  environment that actually matters — the real public URL, hit by a real browser —
+  not just asserted from a local simulation.
+- Gained: a wrong-looking symptom (a bare connection error, no message) was correctly
+  diagnosed as an infrastructure timing gap rather than either dismissed or mistaken
+  for a code defect — by comparing exact log sequences rather than guessing from the
+  error code alone.
+- **Given up**: this remains a real rough edge for anyone's first visit to the public
+  URL right after a period of inactivity — not just for `/ws/interview` (which is
+  deliberately non-functional there anyway) but potentially for the dashboard's own
+  first request too. No fix is proposed here: paying for a plan that doesn't spin down
+  is the actual fix, and isn't warranted for a demo URL whose primary content (the
+  dashboard, the committed session) tolerates a slow first load far better than a
+  live conversation would.
 
 ---
 
