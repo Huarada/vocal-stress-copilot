@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Live Capture — Vocal Stress Co-Pilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css?v=6" />
+</head>
+<body>
+<div class="capture-page">
+
+  <header class="capture-header">
+    <a href="index.html" class="brand capture-brand-link">
+      <div class="brand-mark">◈</div>
+      <div>
+        <div class="brand-name">VOCAL STRESS</div>
+        <div class="brand-sub">CO-PILOT</div>
+      </div>
+    </a>
+    <a href="index.html" class="capture-back mono">← DASHBOARD</a>
+  </header>
+
+  <main class="capture-main">
+
+    <div id="capture-idle" class="capture-panel">
+      <div class="mic-orb">◎</div>
+      <h1 class="capture-title">Start a live interview</h1>
+      <p class="capture-hint">
+        Captures your microphone, streams it to the AssemblyAI Voice Agent, and scores
+        vocal arousal turn by turn against your own opening answers. Nothing here
+        determines truthfulness — see the disclaimer on every scored turn.
+      </p>
+      <button id="start-btn" class="btn-primary">Start Session</button>
+      <p id="capture-error" class="capture-error" hidden></p>
+    </div>
+
+    <div id="capture-live" class="capture-panel" hidden>
+      <div class="capture-status-row">
+        <span id="session-id-badge" class="pill pill-muted mono">—</span>
+        <span class="mic-level"><span id="mic-level-bar" class="mic-level-bar"></span></span>
+        <button id="end-btn" class="btn-danger">End Session</button>
+      </div>
+
+      <div class="capture-columns">
+        <section class="capture-conversation">
+          <div class="side-label">CONVERSATION</div>
+          <div id="conversation-log" class="conversation-log"></div>
+        </section>
+
+        <section class="capture-turns">
+          <div class="side-label">LIVE TURNS</div>
+          <div id="live-turn-list" class="live-turn-list"></div>
+        </section>
+      </div>
+
+      <div class="side-label">SESSION LOG</div>
+      <div id="status-log" class="status-log mono"></div>
+    </div>
+
+    <div id="capture-done" class="capture-panel" hidden>
+      <div class="mic-orb mic-orb-done">✓</div>
+      <h1 class="capture-title">Session saved</h1>
+      <p id="done-summary" class="capture-hint"></p>
+      <a id="view-analysis-link" class="btn-primary" href="index.html">View Analysis →</a>
+    </div>
+
+  </main>
+</div>
+<script src="capture.js?v=6"></script>
+</body>
+</html>

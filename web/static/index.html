@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vocal Stress Co-Pilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<!-- ?v= is bumped whenever these change: no-store headers only help once the server has
+     restarted, and never evict an entry the browser already holds. A new URL does. -->
+<link rel="stylesheet" href="style.css?v=6" />
+</head>
+<body>
+<div class="app">
+
+  <!-- LEFT: sessions -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">◈</div>
+      <div>
+        <div class="brand-name">VOCAL STRESS</div>
+        <div class="brand-sub">CO-PILOT</div>
+      </div>
+    </div>
+
+    <a href="capture.html" class="btn-primary sidebar-new-session">+ NEW LIVE SESSION</a>
+
+    <div class="side-label">SESSIONS</div>
+    <ul id="session-list" class="session-list"></ul>
+
+    <div class="side-foot">
+      <p class="hint">Sessions come from a live capture (this browser or
+      <code>run_interview.py</code>) or <code>build_demo_session.py</code> (offline:
+      real model, real audio).</p>
+    </div>
+  </aside>
+
+  <!-- CENTER -->
+  <main class="main">
+    <div id="empty-state" class="empty-state">
+      <div class="empty-mark">◎</div>
+      <p>Select a session to begin analysis.</p>
+    </div>
+
+    <div id="session-view" class="session-view" hidden>
+
+      <header class="topbar">
+        <div>
+          <h2 id="session-title" class="topbar-title"></h2>
+          <div id="topbar-sub" class="topbar-sub mono"></div>
+        </div>
+        <div class="topbar-pills">
+          <span id="pill-flagged" class="pill pill-amber"><i class="dot dot-amber"></i><span></span></span>
+          <span id="pill-lowconf" class="pill pill-red"><i class="dot dot-red noise-dot"></i><span></span></span>
+          <span id="demo-badge" class="pill pill-muted" hidden>SYNTHETIC DEMO</span>
+        </div>
+      </header>
+
+      <section class="viz">
+        <div id="waveform" class="waveform"></div>
+        <div class="pitch-block">
+          <span class="pitch-axis-label">PITCH Hz</span>
+          <svg id="pitch-chart" viewBox="0 0 900 110" preserveAspectRatio="none"></svg>
+        </div>
+        <div id="viz-axis" class="viz-axis mono"></div>
+      </section>
+
+      <nav class="tabs">
+        <button class="tab tab-active" data-tab="turns">SPEECH TURNS</button>
+        <button class="tab" data-tab="analytics">VOICE ANALYTICS</button>
+      </nav>
+
+      <div class="tab-body">
+        <div id="tab-turns" class="tab-panel">
+          <div id="turn-list" class="turn-list"></div>
+        </div>
+
+        <div id="tab-analytics" class="tab-panel" hidden>
+          <div class="card">
+            <div class="micro-label">AROUSAL DISTRIBUTION BY TURN</div>
+            <div id="dist-bars" class="dist-bars"></div>
+          </div>
+          <div class="analytics-grid">
+            <div class="card">
+              <div class="micro-label">RELIABILITY EVENTS</div>
+              <div id="reliability-events" class="event-list"></div>
+            </div>
+            <div class="card">
+              <div class="micro-label">SESSION MARKERS</div>
+              <div id="session-markers" class="meters"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT -->
+  <aside class="detail">
+    <div class="detail-section">
+      <div class="side-label">TURN ANALYSIS</div>
+      <div id="detail-empty" class="detail-empty">Select a turn to inspect.</div>
+
+      <div id="detail-body" hidden>
+        <div class="hero-card">
+          <div class="hero-row">
+            <div>
+              <div id="detail-turn-id" class="mono micro-value"></div>
+              <div class="hero-number"><span id="detail-score">—</span><span class="hero-unit">AROUSAL</span></div>
+            </div>
+            <div id="detail-badge" class="pill"></div>
+          </div>
+          <div id="detail-meters" class="meters"></div>
+          <div id="detail-alerts" class="alerts"></div>
+        </div>
+
+        <div class="card">
+          <div class="micro-label">TRANSCRIPT</div>
+          <p id="detail-transcript" class="transcript"></p>
+        </div>
+
+        <div class="card">
+          <div class="micro-label">MODEL ATTENTION</div>
+          <p id="detail-gradcam-text" class="attention-text"></p>
+          <div class="artifact-grid">
+            <div class="artifact">
+              <span class="micro-value mono">GRAD-CAM</span>
+              <img id="gradcam-img" alt="Grad-CAM heatmap" />
+            </div>
+            <div class="artifact">
+              <span class="micro-value mono">SPECTROGRAM</span>
+              <img id="spec-img" alt="spectrogram" />
+            </div>
+          </div>
+        </div>
+
+        <p id="detail-disclaimer" class="disclaimer"></p>
+      </div>
+    </div>
+
+    <!-- Always visible, and given the rail's larger share: putting this behind a tab made
+         the agent unreachable, and shrinking it to a footer strip understated the one
+         feature the rest of the dashboard exists to feed (ADR-036). -->
+    <div class="detail-section chat-section">
+      <div class="chat-head">
+        <div class="chat-head-main">
+          <div class="chat-mark">✦</div>
+          <div>
+            <div class="chat-title">Analyst Agent</div>
+            <div class="chat-sub">Grounded in this session only</div>
+          </div>
+        </div>
+        <span class="chat-live"><i class="dot dot-cyan"></i>Ready</span>
+      </div>
+
+      <div id="chat-log" class="chat-log">
+        <div class="chat-msg agent chat-intro">Ask why a turn scored the way it did. Every
+        answer cites this session's measured evidence — and says so when the evidence
+        cannot support an answer.</div>
+      </div>
+
+      <div id="chat-suggestions" class="chat-suggestions">
+        <button type="button" class="chip">Which turn stands out most?</button>
+        <button type="button" class="chip">What drove the highest score?</button>
+        <button type="button" class="chip">How reliable is this session?</button>
+      </div>
+
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" placeholder="Ask about any turn in this session…" autocomplete="off" />
+        <button type="submit">ASK</button>
+      </form>
+    </div>
+  </aside>
+
+</div>
+<script src="markdown.js?v=6"></script>
+<script src="app.js?v=6"></script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+{
+  "session_id": "demo_session_001",
+  "is_synthetic_demo": true,
+  "note": "Synthetic demo: real speaker audio (RAVDESS actor 1) paired with scripted transcripts for illustration. Not a real interview.",
+  "turns": [
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0001",
+      "t_start_ms": 0,
+      "t_end_ms": 3303,
+      "is_baseline_turn": true,
+      "transcript": "Q: Could you confirm your name for me?\nA: Yes, it's Alex Carter.",
+      "stress": {
+        "score": 0.8282292485237122,
+        "label": "high",
+        "model_version": "v1-warm_started",
+        "calibrated": false,
+        "duration_ms": 3303,
+        "score_reliable": true
+      },
+      "baseline_deviation": {},
+      "prosody_raw": {
+        "f0_mean_hz": 111.84626254721057,
+        "f0_std_hz": 17.725731027410905,
+        "jitter_local_pct": 4.189819000808375,
+        "shimmer_local_pct": 13.809531331100608,
+        "hnr_db": 7.8023081033075705,
+        "speech_rate_syll_s": 3.632717158912455,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0001_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0001_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 322.2,
+          "band_hz": [
+            89.7,
+            493.3
+          ],
+          "peak_time_fraction": 0.307,
+          "attention_on_padding": 0.0,
+          "concentration": 0.77
+        },
+        "gradcam_description": "the model's attention concentrated around 322 Hz (band ~90-493 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": []
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0002",
+      "t_start_ms": 3803,
+      "t_end_ms": 7072,
+      "is_baseline_turn": true,
+      "transcript": "Q: How's your connection, can you hear me okay?\nA: Yep, sounds good on my end.",
+      "stress": {
+        "score": 0.8829250931739807,
+        "label": "high",
+        "model_version": "v1-warm_started",
+        "calibrated": false,
+        "duration_ms": 3269,
+        "score_reliable": true
+      },
+      "baseline_deviation": {},
+      "prosody_raw": {
+        "f0_mean_hz": 112.15268638135817,
+        "f0_std_hz": 15.677849826680836,
+        "jitter_local_pct": 3.1702207191393246,
+        "shimmer_local_pct": 13.061835031000198,
+        "hnr_db": 8.623352978828246,
+        "speech_rate_syll_s": 2.4465299413215083,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0002_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0002_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 296.1,
+          "band_hz": [
+            246.0,
+            766.9
+          ],
+          "peak_time_fraction": 0.315,
+          "attention_on_padding": 0.0,
+          "concentration": 0.764
+        },
+        "gradcam_description": "the model's attention concentrated around 296 Hz (band ~246-767 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": []
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0003",
+      "t_start_ms": 7572,
+      "t_end_ms": 11108,
+      "is_baseline_turn": true,
+      "transcript": "Q: Tell me a bit about your current role.\nA: I lead a small backend team, mostly Python services.",
+      "stress": {
+        "score": 0.3723551034927368,
+        "label": "low",
+        "model_version": "v1-warm_started",
+        "calibrated": false,
+        "duration_ms": 3536,
+        "score_reliable": true
+      },
+      "baseline_deviation": {},
+      "prosody_raw": {
+        "f0_mean_hz": 117.90149522398303,
+        "f0_std_hz": 19.596628065364733,
+        "jitter_local_pct": 3.4265072002209394,
+        "shimmer_local_pct": 13.21890911875386,
+        "hnr_db": 8.734518550063424,
+        "speech_rate_syll_s": 3.1100901219296695,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0003_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0003_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 433.3,
+          "band_hz": [
+            198.5,
+            524.5
+          ],
+          "peak_time_fraction": 0.291,
+          "attention_on_padding": 0.0,
+          "concentration": 0.77
+        },
+        "gradcam_description": "the model's attention concentrated around 433 Hz (band ~198-524 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": []
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0004",
+      "t_start_ms": 11608,
+      "t_end_ms": 15111,
+      "is_baseline_turn": false,
+      "transcript": "Q: Why are you looking to leave your current position?\nA: I'd like more ownership over architecture decisions.",
+      "stress": {
+        "score": 0.24965998530387878,
+        "label": "low",
+        "model_version": "v1-warm_started",
+        "calibrated": true,
+        "duration_ms": 3503,
+        "score_reliable": true
+      },
+      "baseline_deviation": {
+        "f0_mean_z": -2.8181807922794238,
+        "f0_std_z": -4.330289021446095,
+        "jitter_z": -2.99969170985163,
+        "shimmer_z": -5.387690249419217,
+        "hnr_z": 3.940995200804839,
+        "speech_rate_z": -0.43021256225245463
+      },
+      "prosody_raw": {
+        "f0_mean_hz": 106.11803974417022,
+        "f0_std_hz": 10.736635769696205,
+        "jitter_local_pct": 2.296453890649866,
+        "shimmer_local_pct": 11.629146141386755,
+        "hnr_db": 10.025119582330257,
+        "speech_rate_syll_s": 2.854288568574283,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0004_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0004_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 322.2,
+          "band_hz": [
+            89.7,
+            729.5
+          ],
+          "peak_time_fraction": 0.299,
+          "attention_on_padding": 0.0,
+          "concentration": 0.728
+        },
+        "gradcam_description": "the model's attention concentrated around 322 Hz (band ~90-730 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": [
+          {
+            "feature": "shimmer_z",
+            "z": -5.387690249419217,
+            "direction": "down"
+          },
+          {
+            "feature": "f0_std_z",
+            "z": -4.330289021446095,
+            "direction": "down"
+          },
+          {
+            "feature": "hnr_z",
+            "z": 3.940995200804839,
+            "direction": "up"
+          }
+        ]
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0005",
+      "t_start_ms": 15611,
+      "t_end_ms": 19481,
+      "is_baseline_turn": false,
+      "transcript": "Q: Can you walk me through a conflict you had with a teammate?\nA: There was a disagreement about a deployment rollback, we argued about it in standup.",
+      "stress": {
+        "score": 0.9964478015899658,
+        "label": "high",
+        "model_version": "v1-warm_started",
+        "calibrated": true,
+        "duration_ms": 3870,
+        "score_reliable": true
+      },
+      "baseline_deviation": {
+        "f0_mean_z": 17.518588767578684,
+        "f0_std_z": 14.313082880998742,
+        "jitter_z": -0.5750002737078261,
+        "shimmer_z": -7.313406076861494,
+        "hnr_z": -1.85722322787503,
+        "speech_rate_z": 1.6734621081191943
+      },
+      "prosody_raw": {
+        "f0_mean_hz": 162.7569638321582,
+        "f0_std_hz": 40.57308340375019,
+        "jitter_local_pct": 3.3465030968609115,
+        "shimmer_local_pct": 11.009264819097817,
+        "hnr_db": 7.614621669025985,
+        "speech_rate_syll_s": 3.875405706534903,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0005_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0005_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 376.3,
+          "band_hz": [
+            246.0,
+            729.5
+          ],
+          "peak_time_fraction": 0.268,
+          "attention_on_padding": 0.0,
+          "concentration": 0.708
+        },
+        "gradcam_description": "the model's attention concentrated around 376 Hz (band ~246-730 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": [
+          {
+            "feature": "f0_mean_z",
+            "z": 17.518588767578684,
+            "direction": "up"
+          },
+          {
+            "feature": "f0_std_z",
+            "z": 14.313082880998742,
+            "direction": "up"
+          },
+          {
+            "feature": "shimmer_z",
+            "z": -7.313406076861494,
+            "direction": "down"
+          }
+        ]
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0006",
+      "t_start_ms": 19981,
+      "t_end_ms": 23651,
+      "is_baseline_turn": false,
+      "transcript": "Q: Have you ever missed a deadline? What happened?\nA: I\u2014 yes, once, the client requirements changed very late.",
+      "stress": {
+        "score": 0.504169762134552,
+        "label": "high",
+        "model_version": "v1-warm_started",
+        "calibrated": true,
+        "duration_ms": 3670,
+        "score_reliable": true
+      },
+      "baseline_deviation": {
+        "f0_mean_z": 13.062470265083176,
+        "f0_std_z": 16.709588593249517,
+        "jitter_z": -2.4612931989242974,
+        "shimmer_z": -3.5232210135454656,
+        "hnr_z": 7.642529037712019,
+        "speech_rate_z": 4.354107782586936
+      },
+      "prosody_raw": {
+        "f0_mean_hz": 150.34645011477295,
+        "f0_std_hz": 44.40839911608143,
+        "jitter_local_pct": 2.5296154882853865,
+        "shimmer_local_pct": 12.229312395841612,
+        "hnr_db": 11.563961159211207,
+        "speech_rate_syll_s": 5.176582774239689,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0006_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0006_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 433.3,
+          "band_hz": [
+            270.8,
+            556.5
+          ],
+          "peak_time_fraction": 0.283,
+          "attention_on_padding": 0.0,
+          "concentration": 0.726
+        },
+        "gradcam_description": "the model's attention concentrated around 433 Hz (band ~271-556 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": [
+          {
+            "feature": "f0_std_z",
+            "z": 16.709588593249517,
+            "direction": "up"
+          },
+          {
+            "feature": "f0_mean_z",
+            "z": 13.062470265083176,
+            "direction": "up"
+          },
+          {
+            "feature": "hnr_z",
+            "z": 7.642529037712019,
+            "direction": "up"
+          }
+        ]
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    },
+    {
+      "session_id": "demo_session_001",
+      "turn_id": "t0007",
+      "t_start_ms": 24151,
+      "t_end_ms": 27554,
+      "is_baseline_turn": false,
+      "transcript": "Q: What salary range are you expecting?\nA: Oh \u2014 I hadn't really thought about a specific number yet.",
+      "stress": {
+        "score": 0.940975546836853,
+        "label": "high",
+        "model_version": "v1-warm_started",
+        "calibrated": true,
+        "duration_ms": 3403,
+        "score_reliable": true
+      },
+      "baseline_deviation": {
+        "f0_mean_z": 12.832382441399854,
+        "f0_std_z": 11.16005578595393,
+        "jitter_z": 0.7656226851921457,
+        "shimmer_z": 4.644621443663894,
+        "hnr_z": -0.719468000312026,
+        "speech_rate_z": 1.5586321772471432
+      },
+      "prosody_raw": {
+        "f0_mean_hz": 149.70564397588188,
+        "f0_std_hz": 35.52704729492155,
+        "jitter_local_pct": 3.92708009434478,
+        "shimmer_local_pct": 14.85851287831749,
+        "hnr_db": 8.087621545733988,
+        "speech_rate_syll_s": 3.8196676154623086,
+        "onset_latency_ms": null,
+        "f0_detected": true,
+        "asr_mean_confidence": null
+      },
+      "xai": {
+        "gradcam_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0007_gradcam.png",
+        "spectrogram_png": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\turn_artifacts\\demo_session_001\\t0007_spec.png",
+        "gradcam_summary": {
+          "peak_frequency_hz": 89.7,
+          "band_hz": [
+            50.0,
+            131.5
+          ],
+          "peak_time_fraction": 0.299,
+          "attention_on_padding": 0.0,
+          "concentration": 0.768
+        },
+        "gradcam_description": "the model's attention concentrated around 90 Hz (band ~50-132 Hz), early in the clip; attention was tightly focused on that region",
+        "top_contributors": [
+          {
+            "feature": "f0_mean_z",
+            "z": 12.832382441399854,
+            "direction": "up"
+          },
+          {
+            "feature": "f0_std_z",
+            "z": 11.16005578595393,
+            "direction": "up"
+          },
+          {
+            "feature": "shimmer_z",
+            "z": 4.644621443663894,
+            "direction": "up"
+          }
+        ]
+      },
+      "disclaimer": "Vocal stress signal relative to this speaker's own baseline. Not a determination of truthfulness."
+    }
+  ]
+}

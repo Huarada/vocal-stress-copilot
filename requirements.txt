@@ -1,0 +1,31 @@
+# Core
+python-dotenv
+numpy
+pandas
+scipy
+scikit-learn
+pillow
+
+# Audio / DSP
+librosa
+soundfile
+praat-parselmouth
+noisereduce
+
+# Modeling
+tensorflow
+
+# Agents / API clients (used by src/voicestress/infrastructure/agents)
+websockets
+httpx
+
+# Live audio capture (scripts/run_interview.py)
+sounddevice
+
+# Dashboard (web/)
+fastapi
+uvicorn[standard]
+
+# Testing
+pytest
+pytest-cov

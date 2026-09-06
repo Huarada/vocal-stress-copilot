@@ -1,0 +1,17 @@
+[project]
+name = "voicestress"
+version = "0.1.0"
+description = "Vocal Stress Co-Pilot for structured interviews — built on AssemblyAI"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "web"]
+testpaths = ["tests"]
+markers = [
+    "integration: touches real audio files on disk (slow-ish, still seconds)",
+    "slow: trains or evaluates a model (minutes)",
+    "quality_gate: reads artifacts/metrics/*.json and enforces minimum thresholds",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

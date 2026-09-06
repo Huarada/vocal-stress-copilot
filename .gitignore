@@ -1,0 +1,68 @@
+# --- Third-party datasets: NEVER commit these (see ARCHITECTURE.md §8) ---
+databaseAudio/
+**/audio_extracted/
+**/audio_extracted_16k/
+**/final_utterance_videos/
+**/MUStARD_Plus_Plus-main/
+*.wav
+*.mp3
+*.mp4
+
+# --- Derived artifacts: spectrograms, trained weights, caches ---
+artifacts/spectrograms/**/*.png
+artifacts/models/*.keras
+artifacts/models/*.h5
+artifacts/manifests/*.parquet
+artifacts/manifests/*.csv
+# .npz caught 2026-09-06, at the git-init dry run, one step before actually committing
+# 68MB of cached RAVDESS/MUStARD++ spectrogram feature arrays (build_features.py's
+# output) to a public repo — the exact ADR-016 violation this file exists to prevent.
+artifacts/manifests/*.npz
+artifacts/reports/*.png
+# Local run logs (uvicorn/training stdout) — never anything a clone needs, and never
+# audited for what a candidate's transcript or an absolute local path might contain.
+artifacts/reports/*.log
+*.pkl
+*.p
+
+# --- Live interview sessions and their per-turn images: real (or RAVDESS-derived)
+# speech, transcripts, and Grad-CAM/spectrogram PNGs, not code (found 2026-09-05 while
+# building the web capture endpoint, ADR-041 — this was never covered, and the repo
+# was one `git init` away from being able to commit a candidate's own transcript) ---
+artifacts/sessions/*.json
+artifacts/turn_artifacts/**/*.png
+
+# --- Secrets ---
+.env
+*.env.local
+
+# --- Python ---
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.ipynb_checkpoints/
+
+# --- Keep manifests' schemas visible but not bulk data ---
+!artifacts/manifests/.gitkeep
+!artifacts/metrics/.gitkeep
+
+# --- Deliberate exception: the ONE synthetic demo session, so a fresh clone shows a
+# populated dashboard with no API key and no training run. Built by
+# scripts/build_demo_session.py from RAVDESS Actor_01 (CC BY-NC-SA) with a SCRIPTED,
+# non-verbatim transcript — attributed and marked non-commercial in README.md. This is
+# the only exception to the session/artifact block above; every other session stays
+# excluded (README.md decision, 2026-09-05) ---
+!artifacts/sessions/demo_session_001.json
+!artifacts/turn_artifacts/demo_session_001/
+!artifacts/turn_artifacts/demo_session_001/*.png

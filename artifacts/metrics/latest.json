@@ -1,0 +1,165 @@
+{
+  "generated_at": "2026-09-04T14:25:32",
+  "variants": {
+    "random_init": {
+      "warm_started": false,
+      "layers_transplanted": 0,
+      "n_splits": 5,
+      "fold_accuracy_mean": 0.6853846153846154,
+      "fold_f1_mean": 0.7404700367671377,
+      "oof_accuracy": 0.688301282051282,
+      "oof_precision": 0.7470664928292047,
+      "oof_recall": 0.74609375,
+      "oof_f1": 0.7465798045602606,
+      "oof_confusion": [
+        [
+          286,
+          194
+        ],
+        [
+          195,
+          573
+        ]
+      ],
+      "per_fold": [
+        {
+          "fold": 1,
+          "accuracy": 0.6923076923076923,
+          "precision": 0.8225806451612904,
+          "recall": 0.6375,
+          "f1": 0.7183098591549296,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 2,
+          "accuracy": 0.7192307692307692,
+          "precision": 0.7403314917127072,
+          "recall": 0.8375,
+          "f1": 0.7859237536656891,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 3,
+          "accuracy": 0.65,
+          "precision": 0.8791208791208791,
+          "recall": 0.5,
+          "f1": 0.6374501992031872,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 4,
+          "accuracy": 0.75,
+          "precision": 0.7914110429447853,
+          "recall": 0.80625,
+          "f1": 0.7987616099071208,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 5,
+          "accuracy": 0.6153846153846154,
+          "precision": 0.6153846153846154,
+          "recall": 1.0,
+          "f1": 0.7619047619047619,
+          "n_train": 1040,
+          "n_val": 208
+        }
+      ],
+      "cv_wall_time_s": 643.2704858779907
+    },
+    "warm_started": {
+      "warm_started": true,
+      "layers_transplanted": 17,
+      "n_splits": 5,
+      "fold_accuracy_mean": 0.8396153846153845,
+      "fold_f1_mean": 0.8739106254726947,
+      "oof_accuracy": 0.8405448717948718,
+      "oof_precision": 0.8456865127582017,
+      "oof_recall": 0.90625,
+      "oof_f1": 0.8749214330609679,
+      "oof_confusion": [
+        [
+          353,
+          127
+        ],
+        [
+          72,
+          696
+        ]
+      ],
+      "per_fold": [
+        {
+          "fold": 1,
+          "accuracy": 0.8307692307692308,
+          "precision": 0.8493975903614458,
+          "recall": 0.88125,
+          "f1": 0.8650306748466258,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 2,
+          "accuracy": 0.9,
+          "precision": 0.8764044943820225,
+          "recall": 0.975,
+          "f1": 0.9230769230769231,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 3,
+          "accuracy": 0.8692307692307693,
+          "precision": 0.8662790697674418,
+          "recall": 0.93125,
+          "f1": 0.8975903614457831,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 4,
+          "accuracy": 0.7807692307692308,
+          "precision": 0.8011695906432749,
+          "recall": 0.85625,
+          "f1": 0.8277945619335347,
+          "n_train": 988,
+          "n_val": 260
+        },
+        {
+          "fold": 5,
+          "accuracy": 0.8173076923076923,
+          "precision": 0.8308823529411765,
+          "recall": 0.8828125,
+          "f1": 0.8560606060606061,
+          "n_train": 1040,
+          "n_val": 208
+        }
+      ],
+      "cv_wall_time_s": 518.887038230896
+    }
+  },
+  "winner": "warm_started",
+  "cross_corpus": {
+    "n_samples": 504,
+    "accuracy": 0.5972222222222222,
+    "precision": 0.5647382920110193,
+    "recall": 0.82,
+    "f1": 0.6688417618270799,
+    "confusion": [
+      [
+        96,
+        158
+      ],
+      [
+        45,
+        205
+      ]
+    ],
+    "baseline_majority_class_accuracy": 0.503968253968254,
+    "beats_majority_baseline": true
+  },
+  "final_model_variant": "warm_started",
+  "final_model_path": "C:\\Users\\lucas\\OneDrive\\Documentos\\Hackathon\\AssemblyAi\\artifacts\\models\\arousal_resnet_light.keras"
+}
