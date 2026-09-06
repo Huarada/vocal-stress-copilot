@@ -94,6 +94,11 @@ def model_path(tmp_path):
 def client(sessions_dir, model_path, monkeypatch):
     monkeypatch.setattr(backend_module, "MODEL_PATH", model_path)
     monkeypatch.setenv("ASSEMBLYAI_API_KEY", "fake-key-not-sent-anywhere")
+    # This whole file is specifically about live capture (ADR-041 onward) — enabled
+    # here by default (ADR-049's flag defaults False for real deployments) so every
+    # existing test keeps exercising the actual session flow; the handful of tests
+    # for the disabled/default state override it back explicitly.
+    monkeypatch.setattr(backend_module, "LIVE_CAPTURE_ENABLED", True)
     return TestClient(backend_module.app)
 
 
@@ -283,11 +288,56 @@ def test_reports_error_not_session_saved_when_the_file_was_never_written(client,
 
 
 def test_missing_api_key_is_rejected_before_any_session_starts(client, monkeypatch):
+    monkeypatch.setattr(backend_module, "LIVE_CAPTURE_ENABLED", True)
     monkeypatch.delenv("ASSEMBLYAI_API_KEY", raising=False)
     with client.websocket_connect("/ws/interview") as ws:
         msg = ws.receive_json()
         assert msg["type"] == "error"
         assert "not configured" in msg["message"]
+
+
+def test_live_capture_disabled_by_default_rejects_immediately(client, monkeypatch):
+    """ADR-049: a deployment can enable the Analyst Agent chat (a real key configured)
+    while keeping live capture off — the flag defaults to disabled, refusing even
+    before checking whether a key exists, so setting a key for /chat can never
+    accidentally also switch this on. (The `client` fixture enables the flag for the
+    rest of this file, since it's specifically about live capture — turned back off
+    here to test the real default.)"""
+    monkeypatch.setattr(backend_module, "LIVE_CAPTURE_ENABLED", False)
+    with client.websocket_connect("/ws/interview") as ws:
+        msg = ws.receive_json()
+        assert msg["type"] == "error"
+        assert "disabled" in msg["message"]
+
+
+def test_live_capture_stays_disabled_even_with_a_real_key_configured(client, monkeypatch):
+    """The critical case: setting ASSEMBLYAI_API_KEY (to power /chat publicly) must
+    NOT also enable live capture as a side effect. The flag is checked independently
+    of, and before, the key."""
+    monkeypatch.setattr(backend_module, "LIVE_CAPTURE_ENABLED", False)
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "a-real-looking-key")
+    with client.websocket_connect("/ws/interview") as ws:
+        msg = ws.receive_json()
+        assert msg["type"] == "error"
+        assert "disabled" in msg["message"]
+
+
+@pytest.mark.parametrize("value", ["true", "True", "TRUE", " true "])
+def test_env_flag_reads_true_case_and_whitespace_insensitively(monkeypatch, value):
+    monkeypatch.setenv("VOICESTRESS_ENABLE_LIVE_CAPTURE", value)
+    assert backend_module._env_flag("VOICESTRESS_ENABLE_LIVE_CAPTURE") is True
+
+
+@pytest.mark.parametrize("value", ["false", "0", "yes", "", "nonsense"])
+def test_env_flag_treats_anything_else_as_false(monkeypatch, value):
+    monkeypatch.setenv("VOICESTRESS_ENABLE_LIVE_CAPTURE", value)
+    assert backend_module._env_flag("VOICESTRESS_ENABLE_LIVE_CAPTURE") is False
+
+
+def test_env_flag_uses_the_default_when_unset(monkeypatch):
+    monkeypatch.delenv("VOICESTRESS_ENABLE_LIVE_CAPTURE", raising=False)
+    assert backend_module._env_flag("VOICESTRESS_ENABLE_LIVE_CAPTURE", default=False) is False
+    assert backend_module._env_flag("VOICESTRESS_ENABLE_LIVE_CAPTURE", default=True) is True
 
 
 def test_unknown_control_message_is_ignored_with_a_status(client):

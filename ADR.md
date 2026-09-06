@@ -69,6 +69,7 @@ useful part of the record.
 | [046](#adr-046) | Make TensorFlow an opt-in cost, not a fixed one, for the dashboard deployment | accepted |
 | [047](#adr-047) | A public dashboard deploy ships with no API key by default | accepted |
 | [048](#adr-048) | Confirmed live: the deployed no-key default fails safely from a real browser | accepted |
+| [049](#adr-049) | Separate the chat-cost decision from the live-capture-cost decision | accepted |
 
 ---
 
@@ -222,7 +223,7 @@ never outward.
 
 **Consequences.**
 - Gained: the domain and application layers run in milliseconds with no TensorFlow, no
-  audio hardware, and no network — which is why 287 tests run in ~21 seconds.
+  audio hardware, and no network — which is why 299 tests run in ~21 seconds.
 - Gained: real swappability. Replacing the CNN with a wav2vec2 head, or AssemblyAI with
   another vendor, is a new adapter, not a rewrite.
 - **Given up**: directness. A file count and an indirection layer that a single-file
@@ -2016,13 +2017,71 @@ upgrade during that boot window appears to be dropped rather than queued.
 
 ---
 
+<a id="adr-049"></a>
+## ADR-049 — Separate the chat-cost decision from the live-capture-cost decision
+
+**Status**: accepted (2026-09-06) — revises ADR-045/047's scope, does not reverse
+their reasoning
+
+**Context.** ADR-045/047 declined to configure a real `ASSEMBLYAI_API_KEY` on the
+public deployment at all, treating "live capture" and "Analyst Agent chat" as one
+undifferentiated cost risk. Once the dashboard was actually live, this had a real
+consequence its own author hadn't fully weighed: a reviewer visiting the hosted URL
+cannot use the Analyst Agent — arguably the more original, more clearly
+differentiating half of this project — at all. The dashboard shows numbers and
+charts; the chat is where the grounded-explanation and refuses-to-overreach behavior
+actually happens.
+
+Re-examining the two exposures separately, they are not the same size:
+- **Live capture**: a continuous, per-minute-billed voice session (STT + LLM + TTS
+  together), openable repeatedly by anyone who finds the URL.
+- **Analyst Agent chat**: one bounded text request, capped at two LLM Gateway calls by
+  the vocabulary guard's own retry limit (ADR-033), against the account's one reachable
+  low-cost model, with 429 handling already tested and graceful (Appendix A row 23),
+  and no payment card on file (worst case is exhausting the trial credit pool or
+  hitting a rate limit — not unbounded real-world spend).
+
+Configuring the key at all would have enabled both at once, because both currently
+read from the same `ASSEMBLYAI_API_KEY`.
+
+**Decision.** `web/backend.py` gains `LIVE_CAPTURE_ENABLED`, an explicit env-var flag
+(`VOICESTRESS_ENABLE_LIVE_CAPTURE`, default `false`) checked in `/ws/interview` BEFORE
+the API key is even resolved. A deployment can now set a real key (enabling `/chat`)
+while this flag stays unset, and live capture still refuses cleanly regardless of the
+key's presence — the two exposures are now independently controllable, not bundled.
+Parsing pulled into its own `_env_flag()` function so the boolean logic is directly
+testable without reloading the module (reloading re-registers every route on a fresh
+FastAPI instance, a real side effect not worth risking for a one-line parse).
+
+The critical case — does setting a key for chat accidentally also enable live
+capture — is pinned by
+`test_live_capture_stays_disabled_even_with_a_real_key_configured`, mutation-verified
+(ADR-039): removing the flag check regresses exactly that test, nothing else.
+
+**Consequences.**
+- Gained: a reviewer can now actually interrogate the demo session's evidence via the
+  hosted URL, which is most of the point of building the Analyst Agent at all.
+- Gained: the two cost exposures are documented and controlled separately going
+  forward, rather than one blanket "no key" policy standing in for a risk assessment
+  that, on inspection, wasn't uniform.
+- **Given up**: `/chat` on the public URL is still bounded, not zero-risk — the free
+  tier's low request ceiling (Appendix A row 23) means a handful of enthusiastic
+  reviewers hitting it around the same time could exhaust it for everyone else, same
+  as it always could locally. Accepted; a rate-limit message is graceful degradation,
+  not a failure.
+- **Given up**: this is now a second flag to remember when reasoning about what a
+  given deployment can do — `ASSEMBLYAI_API_KEY` no longer answers that question by
+  itself, `LIVE_CAPTURE_ENABLED` has to be checked too.
+
+---
+
 ---
 
 <a id="appendix-a"></a>
 ## Appendix A — Bug catalogue
 
 Every bug that reached running code, and what now prevents its recurrence. Each row's
-guard is a real test in the suite (287 passing at time of writing).
+guard is a real test in the suite (299 passing at time of writing).
 
 | # | How it showed up | Root cause | What prevents recurrence |
 |---|------------------|------------|--------------------------|

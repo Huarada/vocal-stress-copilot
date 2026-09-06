@@ -1,10 +1,23 @@
-# Render Blueprint (render.com/docs/blueprint-spec) for the dashboard-only deployment.
+# Render Blueprint (render.com/docs/blueprint-spec).
 #
-# Deliberately does NOT declare ASSEMBLYAI_API_KEY here (ADR-045/046): a public host
-# with no key configured serves the dashboard and the demo session fully, and returns
-# a clear "not configured" message from /chat and /ws/interview instead of exposing a
-# live, cost-bearing surface to arbitrary internet traffic. See README.md's "Known
-# limitations" for how to add a key later if you deliberately want /chat live here.
+# Two independent controls (ADR-045/047/049), not declared here on purpose so this
+# file doesn't force a value during Blueprint creation:
+#
+#   ASSEMBLYAI_API_KEY            - powers /chat (the Analyst Agent). Bounded cost per
+#                                    request (at most two LLM Gateway calls, no card on
+#                                    file) - safe to set here for a public demo.
+#   VOICESTRESS_ENABLE_LIVE_CAPTURE - must be the literal string "true" to turn on
+#                                    /ws/interview. Defaults to disabled regardless of
+#                                    whether an API key is set - a continuous,
+#                                    per-minute-billed voice session is a materially
+#                                    bigger exposure than a single bounded chat request,
+#                                    and this project's policy is: local demo only for
+#                                    that one, in the video, not on a public host.
+#
+# To add the chat key to an already-deployed service: Render dashboard -> this service
+# -> Environment -> Add Environment Variable -> ASSEMBLYAI_API_KEY. Leave
+# VOICESTRESS_ENABLE_LIVE_CAPTURE unset (or "false") unless you deliberately want live
+# capture reachable by anyone who finds the URL.
 services:
   - name: vocal-stress-copilot
     type: web

@@ -315,7 +315,7 @@ python -m pytest tests/quality_gates/           # reads artifacts/metrics/latest
 python -m pytest tests/                         # everything, ~20s
 ```
 
-287 tests as of this writing — all passing, no network, no live API key, no real
+299 tests as of this writing — all passing, no network, no live API key, no real
 microphone required (the handful of things that genuinely can't be tested that way are
 named explicitly in [ARCHITECTURE.md §7b](ARCHITECTURE.md) and in code comments, not
 silently skipped). Every bug that ever reached running code has a regression test and a
@@ -405,10 +405,12 @@ Stated plainly, because the alternative is a judge finding them first:
   connection arriving during that exact window can fail outright with no error message
   rather than waiting for the instance the way a normal HTTP request does. If the
   hosted dashboard seems unresponsive, reload once and wait a few seconds.
-- **Live capture is not enabled on the hosted URL, on purpose.** The public deployment
-  has no `ASSEMBLYAI_API_KEY` configured — see [Why the AssemblyAI integration is
-  deep](#why-the-assemblyai-integration-is-deep-not-decorative) and ADR-045/047/048 for
-  why. It runs fully locally (see [Running it](#running-it)); the demo video shows it.
+- **Live capture is not enabled on the hosted URL, on purpose — even where `/chat`
+  is.** The two are controlled independently (`VOICESTRESS_ENABLE_LIVE_CAPTURE`,
+  ADR-049): a continuous, per-minute-billed voice session reachable by anyone who
+  finds the URL is a materially bigger cost exposure than one bounded chat request, so
+  only the latter may be enabled on a public deployment. Live capture runs fully
+  locally (see [Running it](#running-it)); the demo video shows it.
 
 - **Cross-corpus accuracy is 0.597** — real signal, not a strong classifier. See
   [above](#real-results-honestly-reported) for why the product design doesn't depend on

@@ -11,6 +11,7 @@ tests/unit/test_web_backend.py) despite Frente 1 (the live agent) not being.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -47,6 +48,26 @@ ROOT = Path(__file__).resolve().parent.parent
 SESSIONS_DIR = ROOT / "artifacts" / "sessions"
 PROMPT_PATH = ROOT / "agents" / "prompts" / "analyst.md"
 MODEL_PATH = ROOT / "artifacts" / "models" / "arousal_resnet_light.keras"
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    """Case-insensitive boolean env var read, pulled out as its own function so the
+    parsing itself is testable without reloading this module (which re-registers every
+    route on a fresh FastAPI instance — real side effects, not worth risking for a
+    one-line parse)."""
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() == "true"
+
+
+# ADR-049: live capture and the Analyst Agent chat share one ASSEMBLYAI_API_KEY, but
+# they are NOT the same cost exposure — a continuous, per-minute-billed voice session
+# vs. a bounded, at-most-two-calls text request with existing 429 handling and no card
+# on file. Configuring the key alone would enable both at once; this flag lets a
+# deployment enable chat (so a reviewer can actually use the Analyst Agent on the
+# hosted URL) while keeping live capture off regardless of whether a key is present.
+# Defaults to disabled — a deployment must opt in explicitly, not opt out.
+LIVE_CAPTURE_ENABLED = _env_flag("VOICESTRESS_ENABLE_LIVE_CAPTURE")
 
 app = FastAPI(title="Voice Stress Co-Pilot — Dashboard")
 
@@ -256,7 +277,26 @@ async def interview_capture(
     (e.g. a low-memory public host that only shows the demo session, ADR-046) never
     reaches this line, so it never pays TensorFlow's import time or its 500MB+ memory
     footprint — the `except MissingConfigError` branch above returns first.
+
+    LIVE_CAPTURE_ENABLED (ADR-049) is checked BEFORE the API key at all — a deployment
+    can have a real key configured (to power /chat) while this stays unset, and live
+    capture is refused regardless of the key's presence. Kept as its own explicit
+    branch, not folded into the missing-key path, so the two reasons for refusal read
+    differently to whoever's watching the log: "not configured" vs. "disabled here."
     """
+    if not LIVE_CAPTURE_ENABLED:
+        await ws.accept()
+        await ws.send_json(
+            {
+                "type": "error",
+                "message": (
+                    "Live capture is disabled on this deployment. Run the project "
+                    "locally to try it (see README.md)."
+                ),
+            }
+        )
+        await ws.close(code=1008)
+        return
     try:
         settings = AssemblyAISettings.from_env()
     except MissingConfigError as e:
