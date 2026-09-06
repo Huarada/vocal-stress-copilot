@@ -67,6 +67,7 @@ useful part of the record.
 | [044](#adr-044) | Give the Interview Agent exactly one tool, on the entitlement that actually grants it | accepted |
 | [045](#adr-045) | Re-read the docs before building on a working capability; don't move the Analyst Agent to voice | accepted |
 | [046](#adr-046) | Make TensorFlow an opt-in cost, not a fixed one, for the dashboard deployment | accepted |
+| [047](#adr-047) | A public dashboard deploy ships with no API key by default | accepted |
 
 ---
 
@@ -1893,6 +1894,73 @@ measured outcome, so a future edit re-adding it at module scope fails loudly.
 
 ---
 
+<a id="adr-047"></a>
+## ADR-047 — A public dashboard deploy ships with no API key by default
+
+**Status**: accepted (2026-09-06)
+
+**Context.** The hackathon submission requires a public "Application URL," not just a
+GitHub repository. Two decisions already made this session shape what that URL should
+serve: ADR-045 (live capture is not exposed with a real key to arbitrary internet
+traffic - no documented way to gate its output before it's spoken) and the same
+reasoning extends to the Analyst Agent's chat endpoint, whose free-tier rate ceiling is
+explicitly documented as low (Appendix A row 23) and would be trivially exhausted by a
+few strangers, or a few judges, hitting it in the same window.
+
+Before proposing a hosting platform, a full build-and-run of the intended deployment
+was simulated locally in an isolated venv (a clean `git archive` checkout, not this
+machine's own environment) rather than assumed to work from reading the config alone.
+That simulation surfaced two real, independent problems, neither hypothetical:
+
+1. **A pip bug, not a compromised package.** `pip install -r requirements.txt` failed
+   with "THESE PACKAGES DO NOT MATCH THE HASHES FROM THE REQUIREMENTS FILE... someone
+   may have tampered with them" - alarming wording, investigated rather than dismissed
+   OR panicked over. Every named package downloaded completely, at a plausible file
+   size, with no errors; the mismatch traced to an unnamed dependency's PyPI metadata
+   blob, and the "Got" hash changed on every retry (three different values across three
+   runs) while "Expected" stayed fixed - a pattern consistent with a resolver-side
+   verification bug in pip 25.0.1, not a consistent tampered artifact (which would
+   reproduce identically). Upgrading pip to 26.2.1 made the failure disappear entirely
+   on an unmodified requirements.txt. `render.yaml`'s build command now upgrades pip
+   before installing anything, so Render's own base image - which could ship an
+   equally old pip - doesn't hit the same wall on the one deploy attempt this project
+   gets before the deadline.
+2. **A real dry-run gap in the plan itself.** The first simulation attempt tested only
+   half the build command (`pip install -r requirements.txt`) and skipped
+   `pip install -e .`, then failed at startup with `ModuleNotFoundError: No module
+   named 'voicestress'` - a real omission in the verification, not a red herring; it
+   would have failed identically on Render's actual infrastructure had it not been
+   caught here first.
+
+**Decision.** `render.yaml` deploys `web/backend.py` via Render's Python runtime with
+no `ASSEMBLYAI_API_KEY` declared. Confirmed end to end in the isolated simulation:
+dashboard routes and the demo session return 200, `/chat` returns a clean 503 with an
+actionable message, matching the same tested behavior `MissingConfigError`'s handler
+already provides locally. A judge reviewing the hosted URL sees the full dashboard,
+the demo session, and its Grad-CAM/prosody breakdown; live capture and live chat are
+demonstrated in the video instead, run locally with a real key.
+
+**Consequences.**
+- Gained: a public URL that cannot run up API costs for arbitrary visitors, because it
+  has nothing capable of doing so - not a rate limit bolted onto a live capability, but
+  the capability's absence.
+- Gained: the pip-upgrade step and the two-part build command are both now verified,
+  not assumed, against a real isolated build - the wording of the pip error ("someone
+  may have tampered with them") was exactly alarming enough that skipping the
+  investigation in favor of assuming it was a local fluke would have been the wrong
+  call.
+- **Given up**: a judge cannot try live capture or ask the Analyst Agent a question
+  directly on the hosted URL - only in the video, or by running the project locally
+  with their own key. This is the direct cost of ADR-045's decision, paid here rather
+  than reopened.
+- **Given up**: this was verified in one isolated local venv, not on Render's actual
+  infrastructure - a genuinely different environment (OS, base image, network path)
+  could still surface something this simulation didn't. The first real deploy is still
+  the first real test of Render specifically, consistent with this project's own
+  standard for what "confirmed" means elsewhere (ARCHITECTURE.md Section 7b).
+
+---
+
 ---
 
 <a id="appendix-a"></a>
@@ -1949,8 +2017,9 @@ guard is a real test in the suite (287 passing at time of writing).
 | 44 | `_on_reply_audio`'s payload key was left as a best-effort guess-among-several (ADR-043) rather than a confirmed fact, for the time it took to actually read AssemblyAI's own documentation | The first live session that produced audible playback was treated as "good enough" — it worked, so the exact key was never pinned down, even though the real answer was sitting in already-public docs | [ADR-045](#adr-045): confirmed `"data"` from the Voice Agent API walkthrough's own example handler; `_REPLY_AUDIO_CANDIDATE_KEYS` reordered accordingly, `test_on_reply_audio_decodes_base64_under_the_confirmed_real_key` added |
 | 45 | Seven files (three composition-root scripts, four integration tests) had a local Windows username and folder layout hardcoded into dataset-path constants, discovered only when auditing the repo for credential/cost risk minutes after the first public GitHub push | The strings were never a credential and so never tripped the pre-commit secret search (which specifically grepped for the API key and generic token patterns) — they are a DIFFERENT class of exposure (identifying, not authenticating), and a search built for one class missed the other | Each constant now derives its path from `Path(__file__).resolve()` relative to the repo, with `VOICESTRESS_HACKATHON_ROOT` as an explicit override — zero personal strings in source, identical behavior on the machine that already had the data. Verified by re-running the full integration suite, which exercises real RAVDESS audio through the new path resolution rather than skipping |
 | 46 | Preparing to host the dashboard publicly surfaced that every process running `backend.py` — including a pure dashboard deployment that never runs live capture — paid TensorFlow's full ~15-20s import time and 500MB+ memory footprint | `live_capture` was imported at module top rather than where it's actually used, so the cost was fixed rather than conditional on the feature actually being reachable (no API key, per ADR-045, means it never is on a public host) | [ADR-046](#adr-046): import moved inside the route handler, after the missing-key check; confirmed by direct measurement (0.57s, no tensorflow in sys.modules) rather than assumed; `test_live_capture_import_is_lazy_not_module_level` guards the import site itself |
+| 47 | `pip install -r requirements.txt` failed in an isolated dry-run venv with "THESE PACKAGES DO NOT MATCH THE HASHES... someone may have tampered with them" — alarming wording, on a completely unmodified requirements file | pip 25.0.1's hash-verification logic hit a false positive on an unnamed dependency's PyPI metadata; confirmed not a real tamper by three retries producing three different "Got" hashes against the same fixed "Expected" one (a real compromised artifact would reproduce identically) | [ADR-047](#adr-047): upgrading pip to 26.2.1 resolved it entirely; `render.yaml`'s build command now upgrades pip before installing anything, so the one real deploy attempt doesn't hit the same wall on an older base image |
 
-### The pattern across all forty-six
+### The pattern across all forty-seven
 
 Bugs 1, 2, 3, 5, 6 came from **trusting names over artifacts** — a layer name, a field
 name, a variable name, a summary line. Bugs 7, 8, 9, 12, 13, 14 came from **trusting

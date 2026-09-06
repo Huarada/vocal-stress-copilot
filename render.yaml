@@ -1,0 +1,23 @@
+# Render Blueprint (render.com/docs/blueprint-spec) for the dashboard-only deployment.
+#
+# Deliberately does NOT declare ASSEMBLYAI_API_KEY here (ADR-045/046): a public host
+# with no key configured serves the dashboard and the demo session fully, and returns
+# a clear "not configured" message from /chat and /ws/interview instead of exposing a
+# live, cost-bearing surface to arbitrary internet traffic. See README.md's "Known
+# limitations" for how to add a key later if you deliberately want /chat live here.
+services:
+  - name: vocal-stress-copilot
+    type: web
+    runtime: python
+    plan: free
+    # "pip install --upgrade pip" first: pip 25.0.1's hash-verification logic hit a
+    # false-positive "hashes don't match" failure on an unrelated PyPI metadata blob
+    # during a real local dry run of this exact build command (2026-09-06), fixed by
+    # upgrading to 26.2.1. Every package downloaded fine; only pip's own resolver was
+    # at fault. Pinning this step avoids the same failure on whatever pip version
+    # Render's base Python image ships with.
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && pip install -e .
+    startCommand: python -m uvicorn web.backend:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10

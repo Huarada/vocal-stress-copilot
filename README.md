@@ -428,7 +428,7 @@ Stated plainly, because the alternative is a judge finding them first:
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — full system design, data flow, and the honest
   record of what's confirmed live vs. still assumed.
 - **[ADR.md](ADR.md)** — every architectural decision made on this project, its
-  trade-offs, and a 46-row catalogue of every bug that ever reached running code, paired
+  trade-offs, and a 47-row catalogue of every bug that ever reached running code, paired
   with the test that now guards it.
 - **[SKILLS.md](SKILLS.md)** — hard rules, settled facts, and the day-to-day commands
   for working on this codebase.
