@@ -19,7 +19,7 @@ file (with reasoning) rather than silently acting on the newer claim.
 ## The four non-negotiables (SKILLS.md §2 has the full list)
 
 1. **Never claim deception.** No output, prompt, variable, UI string, or slide says
-   "lying", "deceptive", "guilty", "truthful". Vocabulary is *arousal*, *deviation from
+   "lying", "deceptive", "guilty", "truthful". Vocabulary is *vocal tension*, *deviation from
    baseline*, *confidence*. This is enforced by
    `test_to_evidence_dict_never_uses_deception_vocabulary` — if a change would make that
    test fail, the change is wrong, not the test.

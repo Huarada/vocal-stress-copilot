@@ -25,9 +25,9 @@ from voicestress.domain.value_objects import BANNED_DECEPTION_TERMS
 CORRECTION_INSTRUCTION = (
     "Your previous answer used vocabulary this system forbids "
     "(words like 'lie', 'lying', 'deception', 'guilty', 'truthful') or speculated about "
-    "whether the speaker was being honest. This system measures vocal arousal relative "
+    "whether the speaker was being honest. This system measures vocal tension relative "
     "to a speaker's own baseline and CANNOT determine truthfulness. Rewrite your answer "
-    "using only: 'elevated arousal', 'deviation from baseline', 'acoustic stress "
+    "using only: 'elevated tension', 'deviation from baseline', 'acoustic stress "
     "signal', 'confidence'. Describe what the acoustic measurements show; never why the "
     "speaker's voice changed, and never whether they were being honest."
 )
@@ -37,7 +37,7 @@ SAFE_FALLBACK_ANSWER = (
     "to answer it, moves toward a determination about whether the speaker was being "
     "honest — which this system measures no evidence for and is designed never to "
     "claim. What I can tell you is what the acoustic measurements show for a given "
-    "turn: the arousal score, how reliable that score is, and how it deviates from this "
+    "turn: the tension score, how reliable that score is, and how it deviates from this "
     "speaker's own baseline. Ask me about a specific turn's measurements and I'll walk "
     "you through them."
 )

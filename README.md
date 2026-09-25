@@ -31,7 +31,7 @@ anything else. That constraint is enforced in code, not just in this paragraph.
 ## What this is (and is not)
 
 **It is:** a real-time voice agent that conducts a structured interview while a parallel
-acoustic pipeline measures *vocal arousal deviation* per answer — relative to that same
+acoustic pipeline measures *vocal tension deviation* per answer — relative to that same
 speaker's own opening turns, never to a population average — and a second agent explains
 those measurements conversationally to a human reviewer, grounded strictly in that
 session's own evidence.
@@ -39,7 +39,7 @@ session's own evidence.
 **It is not:** a lie detector. Voice-based deception detection is scientifically
 contested, and overclaiming it would be both dishonest and a scoring liability. Every
 user-facing string — prompts, UI copy, the evidence schema's own `disclaimer` field —
-uses the vocabulary of *arousal*, *deviation from baseline*, and *confidence*. Never
+uses the vocabulary of *vocal tension*, *deviation from baseline*, and *confidence*. Never
 *lying*, *guilty*, *deceptive*, or *truthful*.
 
 This is a structural guarantee, not a style choice:
@@ -62,7 +62,7 @@ asks *why* they didn't move forward. "The candidate seemed a bit off on the comp
 question" is a real thing interviewers say to each other and almost never something a
 candidate hears back in a useful form.
 
-This system turns that into something structured: a per-answer vocal-arousal signal,
+This system turns that into something structured: a per-answer vocal-tension signal,
 computed relative to *that candidate's own* baseline (not a population norm), with a
 concrete acoustic explanation attached (which frequency band the model attended to, which
 prosodic features deviated and by how much) — and an Analyst Agent a reviewer can

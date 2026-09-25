@@ -2075,6 +2075,68 @@ capture — is pinned by
 
 ---
 
+## ADR-050 — Rename the product-facing vocabulary term from "arousal" to "vocal tension"
+
+**Status**: accepted (2026-09-25)
+
+**Context.** ADR-001 and ADR-017 fixed the safe vocabulary as *arousal*, *deviation from
+baseline*, *confidence* — chosen at the time only to exclude deception claims, not
+reviewed for how the term itself would read to a non-technical audience. With the product
+now demoable end-to-end, that gap surfaced: "arousal" carries a strong non-technical
+connotation unrelated to its affective-computing meaning (the valence/arousal circumplex
+model), and that connotation is exactly the kind of thing a hiring-manager-facing feature
+about a candidate's voice cannot afford to accidentally evoke.
+
+The underlying model and research task are unaffected — the classifier still predicts
+emotional arousal in the RAVDESS/MUStARD++ sense (ADR-013/ADR-014), and nothing about the
+model, its training data, or its evaluation changes here. This is a vocabulary decision
+about the word the *product* uses to describe that model's output to a human, not a
+change to what is being measured.
+
+**Decision.** Every human-facing surface — the Interview/Analyst agent prompts, the
+vocabulary guard's correction/fallback text, the LLM-context block built by
+`render_session_evidence` (the active grounding path per ADR-030, so this is literally
+the words the model reads), the dashboard UI copy, and the live-capture rejection
+message — now says "vocal tension" instead of "arousal". `CLAUDE.md` and `SKILLS.md`'s
+own statements of the vocabulary rule (§2 hard rule #1) are updated to match, since they
+are the canonical restatement of ADR-001/017's rule and would otherwise contradict the
+prompts they describe.
+
+Internal identifiers are deliberately **not** renamed: `ArousalPrediction`,
+`ArousalLabel`, `ArousalClassifierPort`, `KerasArousalClassifier`,
+`arousal_score_reliable`, the `arousal` field on `TurnEvidence`, the RAVDESS/MUStARD++
+dataset column names, and the `arousal_resnet_light.keras` checkpoint filename all keep
+their existing names. None of these are ever rendered to a human or spoken by an agent —
+`entities.py`'s `to_evidence_dict()` already serializes the field as `"score"`, not
+`"arousal"` (verified before this change, not assumed). Renaming them would touch ~40
+files purely for consistency, with real regression risk (checkpoint filenames,
+serialization contracts, cross-referenced dataset columns) and zero user-facing benefit,
+five days from the submission deadline.
+
+ADR.md's own prior entries (ADR-001, ADR-013, ADR-014, etc.) are left untouched per this
+file's own rule against rewriting history — they correctly recorded the vocabulary choice
+that was live at the time.
+
+**Consequences.**
+- Gained: no live or recorded surface — agent speech, dashboard, chat — uses a term with
+  an unrelated and unhelpful connotation for an HR-facing product.
+- Gained: `test_context_grounding.py`'s assertions on the rendered evidence block confirm
+  the new wording reaches the LLM's context exactly where ADR-030 said it must.
+- **Given up**: the product's vocabulary and the model's internal/research vocabulary now
+  diverge by name ("vocal tension" in every prompt and UI string vs. "arousal" in every
+  Python identifier and the dataset literature it's built on). This is judged acceptable
+  because the boundary is exactly the code/prose boundary this project already treats as
+  meaningful (ADR-017's "the strongest guarantee stops at the tool boundary"), but a
+  future contributor reading the Python without this ADR could reasonably ask why the
+  words don't match — this entry is that answer.
+- **Given up**: no automated guard yet exists to prevent "arousal" from leaking back into
+  a human-facing surface (prompt, UI string, or `render_session_evidence` output) the way
+  `test_to_evidence_dict_never_uses_deception_vocabulary` guards the deception vocabulary.
+  Worth adding if this surface changes again; not added now, since the full suite
+  (299 tests) was re-run after this change and nothing depends on the old wording.
+
+---
+
 ---
 
 <a id="appendix-a"></a>

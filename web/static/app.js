@@ -2,7 +2,7 @@
 //
 // Visual language follows AssemblyAI_InterfaceDemo (Figma Make). Where that demo used
 // mock arrays, every visual here is driven by real session evidence: the waveform is
-// per-turn arousal, the pitch contour is measured f0_mean, and the pulsing markers are
+// per-turn vocal tension, the pitch contour is measured f0_mean, and the pulsing markers are
 // turns the system itself flagged unreliable (ADR-025/ADR-026) — not decoration.
 
 const state = { sessions: [], currentSessionId: null, currentSession: null, selectedTurnId: null };
@@ -87,7 +87,7 @@ function renderHeader() {
     `${turns.length} TURNS · ${(totalMs / 1000).toFixed(1)}s OF SPEECH ANALYSED`;
 
   const flaggedPill = document.getElementById("pill-flagged");
-  flaggedPill.querySelector("span").textContent = `${flagged} HIGH AROUSAL`;
+  flaggedPill.querySelector("span").textContent = `${flagged} HIGH TENSION`;
   flaggedPill.hidden = flagged === 0;
 
   const lowPill = document.getElementById("pill-lowconf");
@@ -97,7 +97,7 @@ function renderHeader() {
   document.getElementById("demo-badge").hidden = !s.is_synthetic_demo;
 }
 
-// ── waveform: symmetric bars, height = arousal (demo's waveform, real data) ──
+// ── waveform: symmetric bars, height = vocal tension (demo's waveform, real data) ──
 function renderWaveform() {
   const wave = document.getElementById("waveform");
   const turns = state.currentSession.turns;
@@ -123,7 +123,7 @@ function renderWaveform() {
       bar.style.background = color;
       bar.style.color = color;
       if (dim) bar.style.opacity = ".3";
-      bar.title = `${turn.turn_id} — arousal ${turn.stress.score.toFixed(3)}${
+      bar.title = `${turn.turn_id} — tension ${turn.stress.score.toFixed(3)}${
         dim ? " (low confidence)" : ""
       }`;
       bar.addEventListener("click", () => selectTurn(turn.turn_id));
@@ -233,7 +233,7 @@ function renderTurnList() {
       )}</p>
       <div class="turn-metrics">
         <div class="turn-metric">
-          <span>AROUSAL</span>
+          <span>TENSION</span>
           <div class="meter-track"><div class="meter-bar" style="width:${(turn.stress.score * 100).toFixed(0)}%;background:${color}"></div></div>
           <span style="color:${color}">${turn.stress.score.toFixed(2)}</span>
         </div>
@@ -294,7 +294,7 @@ function renderAnalytics() {
     : 0;
 
   document.getElementById("session-markers").innerHTML = [
-    { label: "Mean arousal (scored turns)", val: mean.toFixed(2), pct: mean * 100, color: scoreColor(mean) },
+    { label: "Mean tension (scored turns)", val: mean.toFixed(2), pct: mean * 100, color: scoreColor(mean) },
     { label: "Turns above reliability floor", val: `${reliablePct.toFixed(0)}%`, pct: reliablePct, color: "#00d4c8" },
     { label: "Turns with measured pitch", val: `${pitchPct.toFixed(0)}%`, pct: pitchPct, color: "#8b78ff" },
   ]

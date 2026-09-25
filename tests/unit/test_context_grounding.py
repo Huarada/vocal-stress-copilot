@@ -258,7 +258,7 @@ def test_summary_separates_an_unreliable_overall_maximum():
         _session([_scored("t1", 0.60), _scored("t2", 0.99, t_end=400)])
     )
     head = block[: block.index("--- t1")]
-    assert "highest arousal among reliable scored turns: t1 at 0.600" in head
+    assert "highest tension among reliable scored turns: t1 at 0.600" in head
     assert "t2 at 0.990" in head and "score_reliable: False" in head
     assert "low-confidence caveat" in head
 

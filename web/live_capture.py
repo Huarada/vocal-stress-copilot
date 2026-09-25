@@ -104,7 +104,7 @@ async def run_capture_session(
         return
 
     if not model_path.exists():
-        await _reject(ws, f"Arousal model not found at {model_path} — cannot start a session.")
+        await _reject(ws, f"Vocal tension model not found at {model_path} — cannot start a session.")
         return
 
     try:

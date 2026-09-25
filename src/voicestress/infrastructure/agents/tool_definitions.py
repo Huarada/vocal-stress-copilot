@@ -20,7 +20,7 @@ LIST_FLAGGED_TURNS_SCHEMA: dict[str, Any] = {
     "type": "function",
     "name": "list_flagged_turns",
     "description": (
-        "List the interview turns whose vocal arousal signal deviated most from the "
+        "List the interview turns whose vocal tension signal deviated most from the "
         "candidate's own baseline. Returns turn ids and scores only — call "
         "get_turn_evidence for detail on any specific turn."
     ),
@@ -29,7 +29,7 @@ LIST_FLAGGED_TURNS_SCHEMA: dict[str, Any] = {
         "properties": {
             "min_score": {
                 "type": "number",
-                "description": "Minimum arousal probability (0-1) to include.",
+                "description": "Minimum vocal-tension probability (0-1) to include.",
                 "default": 0.6,
             }
         },
@@ -41,7 +41,7 @@ GET_TURN_EVIDENCE_SCHEMA: dict[str, Any] = {
     "type": "function",
     "name": "get_turn_evidence",
     "description": (
-        "Get the full evidence record for one interview turn: transcript, arousal "
+        "Get the full evidence record for one interview turn: transcript, tension "
         "score, baseline z-deviations, raw prosodic features, and Grad-CAM/spectrogram "
         "artifact paths. This is the ONLY source of acoustic detail — never state a "
         "number that didn't come from this tool."
@@ -125,19 +125,19 @@ def _render_session_summary(session: InterviewSession) -> list[str]:
     if reliable_scored:
         top = max(reliable_scored, key=by_score)
         lines.append(
-            f"  highest arousal among reliable scored turns: {top.turn_id} at "
+            f"  highest tension among reliable scored turns: {top.turn_id} at "
             f"{top.arousal.probability:.3f} — this is the answer to "
             f'"which turn stands out" and "what scored highest".'
         )
         mean = sum(t.arousal.probability for t in reliable_scored) / len(reliable_scored)
         lines.append(
-            f"  mean arousal across the {len(reliable_scored)} reliable scored turns: "
+            f"  mean tension across the {len(reliable_scored)} reliable scored turns: "
             f"{mean:.3f}"
         )
     else:
         top = None
         lines.append(
-            "  highest arousal among reliable scored turns: none — no scored turn met "
+            "  highest tension among reliable scored turns: none — no scored turn met "
             "the reliability floor, so the session supports no ranking by score."
         )
 
@@ -145,7 +145,7 @@ def _render_session_summary(session: InterviewSession) -> list[str]:
         top_any = max(scored, key=by_score)
         if top is None or top_any.turn_id != top.turn_id:
             lines.append(
-                f"  highest arousal among ALL scored turns including low-confidence "
+                f"  highest tension among ALL scored turns including low-confidence "
                 f"ones: {top_any.turn_id} at {top_any.arousal.probability:.3f} "
                 f"(score_reliable: {top_any.arousal_score_reliable}). Report the "
                 f"reliable figure above as the headline; mention this one only with "
@@ -198,7 +198,7 @@ def render_session_evidence(session: InterviewSession) -> str:
         "baseline, not ratios or percentages. +1.0 means one standard deviation above "
         "that speaker's own norm; +0.18 is a small deviation, not '18% higher' or "
         "'1.8 times higher'.",
-        "  arousal score is a 0-1 model output, not a probability of anything about the "
+        "  tension score is a 0-1 model output, not a probability of anything about the "
         "speaker's state.",
         "",
     ]
@@ -213,7 +213,7 @@ def render_session_evidence(session: InterviewSession) -> str:
         lines.append(f"--- {turn.turn_id} ({kind}) ---")
         lines.append(f"transcript: {turn.transcript!r}")
         lines.append(
-            f"arousal score: {turn.arousal.probability:.3f} ({turn.arousal.label.value}), "
+            f"tension score: {turn.arousal.probability:.3f} ({turn.arousal.label.value}), "
             f"duration: {turn.duration_ms}ms, "
             f"score_reliable: {turn.arousal_score_reliable}"
         )

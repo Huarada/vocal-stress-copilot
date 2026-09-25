@@ -37,7 +37,7 @@ Violating these is a bug, not a style preference.
 
 1. **Never claim deception.** No output, prompt, variable name, UI string, or slide says
    "lying", "deceptive", "guilty", or "truthful". The vocabulary is *vocal stress*,
-   *arousal*, *deviation from baseline*, *confidence*. This is enforced in
+   *vocal tension*, *deviation from baseline*, *confidence*. This is enforced in
    `agents/prompts/analyst.md` and must be re-checked whenever that prompt changes.
 2. **The Interview Agent never sees a stress score.** No arrow from evidence back into the
    conversation (ARCHITECTURE.md §2). If a feature seems to need one, it's the wrong feature.
