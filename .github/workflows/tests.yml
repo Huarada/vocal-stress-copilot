@@ -25,6 +25,14 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
+      # `sounddevice` (scripts/run_interview.py's mic path) links against PortAudio at
+      # import time — bundled on Windows, present on the local dev machine this suite
+      # was verified on, but not on ubuntu-latest by default. Without this,
+      # test_mic_source.py fails at COLLECTION (OSError, not a test failure), which
+      # aborts the whole run before a single test executes.
+      - name: Install system audio library (sounddevice/PortAudio)
+        run: sudo apt-get update && sudo apt-get install -y libportaudio2
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

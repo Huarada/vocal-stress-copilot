@@ -2298,6 +2298,17 @@ passed, 14 skipped, is that expected?"
 Verified locally before pushing: `pytest -m "not integration and not quality_gate" -q`
 → 286 passed, 14 deselected, matching the workflow's own command exactly.
 
+**The first real CI run on GitHub failed anyway** — the local pass didn't verify the
+one thing that differs between the two environments. Collection aborted with `OSError:
+PortAudio library not found` importing `sounddevice` (`test_mic_source.py`): the library
+this wraps is bundled on Windows (this session's own dev machine) but not present on
+`ubuntu-latest` by default, and CI's `pip install` alone can't provide a system-level
+shared library. Fixed with an `apt-get install -y libportaudio2` step before the
+Python install. This is exactly the class of mistake ADR-039 names — a guard (here, a
+CI workflow) is unverified until it's actually been run somewhere other than the
+environment it was written on; "passes locally" was never evidence the workflow itself
+was correct, only that the test suite was.
+
 **Consequences.**
 - Gained: a fresh clone installs the same versions this project was actually tested
   against, not whatever PyPI happens to serve that week.
