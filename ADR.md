@@ -2267,6 +2267,51 @@ neither needed updating).
 
 ---
 
+## ADR-053 — Pin dependency versions and add a GitHub Actions CI workflow
+
+**Status**: accepted (2026-09-26)
+
+**Context.** The same external review (ADR-052) flagged `requirements.txt` as fully
+unpinned — a real risk given Keras 3's API changes often enough that ADR-020/ADR-045's
+own bug catalogue includes cases caused by exactly this kind of drift — and no CI on the
+public GitHub repo, meaning a broken commit would only be caught by whoever happened to
+run the suite locally next.
+
+**Decision.** `requirements.txt` pinned to the exact versions verified passing
+(`pip freeze` against this session's own environment, 300/300 tests), not guessed or
+copied from elsewhere. Caught one piece of drift while there: `pytest-cov` was listed
+but never imported, configured, or referenced anywhere in the repo, and wasn't even
+installed in the working environment despite the full suite passing — removed rather
+than pinned, since pinning a version of something unused would just be a second kind of
+inaccuracy.
+
+Added `.github/workflows/tests.yml`: checkout, Python 3.12, `pip install -r
+requirements.txt`, then `pytest -m "not integration and not quality_gate"` — the same
+exclusion the reviewer suggested. Both excluded marker groups need artifacts this repo
+deliberately never contains (ADR-016): `integration` needs real RAVDESS/MUStARD++ audio
+under `databaseAudio`/`sarcasmoVoz`, `quality_gate` needs `artifacts/metrics/latest.json`
+from a real training run. The integration tests already skip gracefully when that data
+is absent (confirmed by reading them, not assumed), so CI *could* have run them as
+skips — excluded anyway so a run reads as an unambiguous "300 passed" rather than "286
+passed, 14 skipped, is that expected?"
+
+Verified locally before pushing: `pytest -m "not integration and not quality_gate" -q`
+→ 286 passed, 14 deselected, matching the workflow's own command exactly.
+
+**Consequences.**
+- Gained: a fresh clone installs the same versions this project was actually tested
+  against, not whatever PyPI happens to serve that week.
+- Gained: every future push/PR gets an automatic pass/fail signal instead of relying on
+  someone remembering to run `pytest` before pushing.
+- Gained: one dead dependency found and removed as a side effect of pinning honestly
+  instead of copy-pasting a `pip freeze`.
+- **Given up**: CI runs the same 286 tests already covered locally — it adds an
+  automatic trigger and a visible badge/status, not new coverage. The `integration` and
+  `quality_gate` suites (dataset- and training-dependent) still require a human to run
+  them locally with the real data in place; this ADR does not change that boundary.
+
+---
+
 ---
 
 <a id="appendix-a"></a>
