@@ -53,6 +53,13 @@ Thumbs.db
 .idea/
 .ipynb_checkpoints/
 
+# --- Replit-generated (local dependency cache / IDE state, not source) ---
+.pythonlibs/
+.upm/
+.config/
+replit.nix
+.breakpoints
+
 # --- Keep manifests' schemas visible but not bulk data ---
 !artifacts/manifests/.gitkeep
 !artifacts/metrics/.gitkeep

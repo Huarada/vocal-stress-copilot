@@ -1,0 +1,7 @@
+run = "pip install --upgrade pip && pip install -r requirements.txt && pip install -e . && python -m uvicorn web.backend:app --host 0.0.0.0 --port 8080"
+entrypoint = "web/backend.py"
+modules = ["python-3.12"]
+
+[[ports]]
+localPort = 8080
+externalPort = 80
