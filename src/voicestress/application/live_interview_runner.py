@@ -56,6 +56,16 @@ NUM_BASELINE_TURNS = 3  # ARCHITECTURE.md §7
 MIN_TURN_DURATION_MS = 300  # ARCHITECTURE.md §7b — filters spurious VAD blips (a real
 # 100ms mic-click/noise "turn" reached the pipeline on the first live run, 2026-09-05)
 
+# ADR-051: without this, the Voice Agent API never speaks first — it waits on the
+# candidate's own VAD-detected speech to open the turn, so a candidate who (reasonably)
+# waits to be greeted gets silence forever. `system_prompt` describes how the agent
+# should behave once it's talking; it does not make the agent talk first. `greeting` is
+# the one `session.update` field that does (voice_agent_client.py's `configure()`).
+INTERVIEW_GREETING = (
+    "Hi, thanks for joining today's interview! Whenever you're ready, could you start "
+    "by confirming your name for me?"
+)
+
 StatusHandler = Callable[[str], None]
 TurnHandler = Callable[[TurnEvidence], Awaitable[None] | None]
 TextHandler = Callable[[str], Awaitable[None] | None]
@@ -474,7 +484,9 @@ class LiveInterviewRunner:
                 # nothing acoustic to call, and _on_tool_call's dispatch rejects any
                 # tool name it doesn't recognize rather than acting on it blindly.
                 await voice_session.configure(
-                    tools=[FLAG_TECHNICAL_ISSUE_SCHEMA], system_prompt=prompt
+                    tools=[FLAG_TECHNICAL_ISSUE_SCHEMA],
+                    system_prompt=prompt,
+                    greeting=INTERVIEW_GREETING,
                 )
 
                 audio_source.start(self.feed_audio_chunk)

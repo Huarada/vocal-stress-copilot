@@ -7,11 +7,13 @@ below that boundary: turn finalization with the new observer hooks (ADR-040/041)
 the reply.* handlers this pass wired up for the first time.
 """
 import asyncio
+import json
 
 import pytest
 
 from voicestress.application.live_interview_runner import (
     FLAG_TECHNICAL_ISSUE_SCHEMA,
+    INTERVIEW_GREETING,
     LiveInterviewRunner,
     TranscriptPayload,
 )
@@ -325,6 +327,62 @@ def test_run_saves_the_session_even_when_cancelled_before_the_event_loop_starts(
         assert saved_path.exists(), "session was never saved despite an early cancellation"
     finally:
         runner_module.SESSIONS_DIR = original_sessions_dir
+
+
+# --- ADR-051: the Voice Agent must be told to speak first ---------------------------
+
+
+class _CapturingTransport:
+    """Captures every `send()` payload (what `configure()` sends as `session.update`),
+    then blocks forever on that same `send()` call — same shape as `_StallingTransport`
+    above, so cancellation lands INSIDE `configure()`, before `pump_task` is ever
+    created. Letting `pump_task` actually start (by having `send()` return normally)
+    was tried first and hung the whole test process: its `_audio_pump` blocks on
+    `asyncio.to_thread(self._audio_queue.get)`, a real OS thread with nothing ever
+    feeding the queue — `pump_task.cancel()` cannot interrupt an already-blocking
+    synchronous thread, and Python won't exit while it's still alive."""
+
+    def __init__(self):
+        self.sent: list[str] = []
+
+    async def send(self, message: str) -> None:
+        self.sent.append(message)
+        await asyncio.Event().wait()  # never set: blocks forever until cancelled
+
+    async def recv(self) -> str:
+        await asyncio.Event().wait()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc_info):
+        pass
+
+
+def test_run_configures_the_voice_agent_with_a_greeting(model_path):
+    """Without a `greeting`, the Voice Agent API waits on the candidate's own
+    VAD-detected speech to open the first turn — it never speaks first, regardless of
+    what the system prompt describes. A live session on 2026-09-26 sat in silence after
+    `[session ready]` for exactly this reason. `configure()` has always accepted a
+    `greeting` (test_voice_agent_client.py's own contract); `run()` simply never passed
+    one."""
+    r = _make_runner(model_path)
+    transport = _CapturingTransport()
+
+    async def connect():
+        return transport
+
+    async def scenario():
+        task = asyncio.create_task(r.run(audio_source=_NullAudioSource(), connect=connect))
+        await asyncio.sleep(0.05)  # let run() reach and complete configure()'s send()
+        task.cancel()
+        await task
+
+    run(scenario())
+
+    assert transport.sent, "configure() never sent a session.update"
+    payload = json.loads(transport.sent[0])
+    assert payload["session"]["greeting"] == INTERVIEW_GREETING
 
 
 # --- ADR-044: the one tool the Interview Agent may call ----------------------------

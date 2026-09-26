@@ -2137,6 +2137,67 @@ that was live at the time.
 
 ---
 
+## ADR-051 — Configure the Voice Agent with a `greeting`, or it never speaks first
+
+**Status**: accepted (2026-09-26)
+
+**Context.** The first real end-to-end browser capture session (ADR-041's own
+"UNVERIFIED end to end" marker, finally exercised live) connected, reached
+`[session ready]`, and then sat in silence — no agent speech, ever, despite
+`agents/prompts/interviewer.md` explicitly scripting an opening greeting and three
+calibration questions. `VoiceAgentSession.configure()` has accepted an optional
+`greeting: str | None` parameter since it was written, with its own passing contract
+test (`test_configure_includes_greeting_when_provided`'s sibling,
+`assert "greeting" not in msg["session"]  # optional field, omitted when not passed`)
+— but `LiveInterviewRunner.run()`'s own call to `configure()` never passed one. Without
+it, the Voice Agent API waits on the candidate's own VAD-detected speech to open the
+first turn; `system_prompt` governs how the agent behaves once it's talking, it does
+not make it talk first. A candidate who reasonably waits to be greeted gets silence
+forever — indistinguishable, from their side, to a dropped connection (the same shape of
+mistake ADR-040 already found once in this same file, in the opposite direction: the
+agent's reply going unheard rather than unspoken).
+
+**Decision.** Added `INTERVIEW_GREETING`, a literal opening line matching
+`interviewer.md`'s own first scripted question ("Hi, thanks for joining today's
+interview! Whenever you're ready, could you start by confirming your name for me?"),
+and pass it as `configure(..., greeting=INTERVIEW_GREETING)`. Confirmed live the same
+day: the agent spoke a paraphrase of exactly this line unprompted
+("Hi there. Thanks for joining me today. Before we get started with the interview, I
+just wanted to do a quick bit of calibration. Could you confirm your name for me?"),
+then correctly proceeded through baseline turns from the candidate's spoken replies.
+
+`test_run_configures_the_voice_agent_with_a_greeting` pins this via a `_CapturingTransport`
+fake that records `configure()`'s actual `session.update` payload and asserts
+`payload["session"]["greeting"] == INTERVIEW_GREETING`. Mutation-verified (ADR-039):
+removing the `greeting=` argument turns this test red (`KeyError` on the missing key),
+confirming the guard actually depends on the fix rather than trivially passing.
+
+Writing this test surfaced a second, unrelated hazard worth recording: an earlier draft
+let `send()` return normally (to capture the payload) and then let `run()` proceed into
+creating `pump_task`, whose `_audio_pump` blocks on
+`asyncio.to_thread(self._audio_queue.get)` with nothing ever feeding the queue (a
+`_NullAudioSource`). `pump_task.cancel()` cannot interrupt a synchronous call already
+running in a real OS thread, and Python will not exit while that thread is alive — the
+whole test process hung indefinitely, not just the one test. Fixed by having
+`_CapturingTransport.send()` capture the message and then block forever itself (same
+shape as the existing `_StallingTransport`), so cancellation lands inside `configure()`,
+before `pump_task` is ever created — never let a test reach real un-cancellable
+blocking I/O it doesn't need to exercise.
+
+**Consequences.**
+- Gained: the Interview Agent now actually opens every live session, matching what
+  `interviewer.md` was always written to assume.
+- Gained: a second, previously theoretical bug class (a test that spawns real blocking
+  I/O it can't cancel) caught before it reached the suite, not after a hung CI run.
+- **Given up**: the exact wording the agent speaks is not pinned byte-for-byte — the
+  live transcript above is a paraphrase of `INTERVIEW_GREETING`, not a verbatim replay,
+  meaning this account's Voice Agent treats `greeting` as a seed the model elaborates on
+  rather than literal TTS text (UNCONFIRMED against AssemblyAI's own docs; noted here
+  rather than assumed). If a future change needs the greeting spoken verbatim, this
+  assumption needs revisiting.
+
+---
+
 ---
 
 <a id="appendix-a"></a>
