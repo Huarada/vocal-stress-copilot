@@ -232,6 +232,19 @@ than showing a raw error). The other three `.env.example` variables (Voice Agent
 Streaming / LLM Gateway URLs) already default to the verified real endpoints
 (ARCHITECTURE.md §5) — leave them unless you have a reason to override.
 
+To try **live capture** (`capture.html` or `run_interview.py`), also set:
+
+```
+VOICESTRESS_ENABLE_LIVE_CAPTURE=true
+```
+
+This defaults to `false` everywhere, including a local checkout — setting
+`ASSEMBLYAI_API_KEY` alone is not enough (ADR-049 keeps the two deliberately
+independent: one bounded chat request vs. an unbounded, per-minute-billed voice
+session). Without this flag, `/ws/interview` refuses with `Live capture is disabled on
+this deployment` even when everything else is configured correctly. Restart `uvicorn`
+after adding it — `--reload` reloads Python code, not environment variables.
+
 `artifacts/models/arousal_resnet_light.keras` — the trained arousal classifier — is
 **not in the repo** (gitignored per [ADR-016](ADR.md), since it's derived from licensed
 training audio). You have two options:
@@ -281,7 +294,8 @@ by a `no-store` header; only the Python side needs `--reload`.
 python scripts/run_interview.py
 ```
 
-Both live paths need `ASSEMBLYAI_API_KEY` set and the model checkpoint in place. The
+Both live paths need `ASSEMBLYAI_API_KEY` set, `VOICESTRESS_ENABLE_LIVE_CAPTURE=true`,
+and the model checkpoint in place. The
 first three turns of every session are used to calibrate that speaker's own baseline —
 answer normally; scoring (relative to *that* baseline) starts from turn four.
 
@@ -409,8 +423,9 @@ Stated plainly, because the alternative is a judge finding them first:
   is.** The two are controlled independently (`VOICESTRESS_ENABLE_LIVE_CAPTURE`,
   ADR-049): a continuous, per-minute-billed voice session reachable by anyone who
   finds the URL is a materially bigger cost exposure than one bounded chat request, so
-  only the latter may be enabled on a public deployment. Live capture runs fully
-  locally (see [Running it](#running-it)); the demo video shows it.
+  only the latter may be enabled on a public deployment. The flag defaults to `false`
+  locally too — set `VOICESTRESS_ENABLE_LIVE_CAPTURE=true` in your own `.env` to try it
+  (see [Running it](#running-it)); the demo video shows it working.
 
 - **Cross-corpus accuracy is 0.597** — real signal, not a strong classifier. See
   [above](#real-results-honestly-reported) for why the product design doesn't depend on
