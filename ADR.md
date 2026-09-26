@@ -2198,6 +2198,75 @@ blocking I/O it doesn't need to exercise.
 
 ---
 
+## ADR-052 — Correct the "score is baseline-relative" overclaim, in the disclaimer and the README
+
+**Status**: accepted (2026-09-26)
+
+**Context.** An external code review (2026-09-26) caught a real contradiction between
+what the product claims and what the code does: the README said the system "never uses
+a fixed threshold" and that "every turn is scored relative to that speaker's own
+baseline," and — more seriously — `DECEPTION_VOCABULARY_DISCLAIMER`
+(`value_objects.py`), the literal disclaimer string shown on every scored turn in the
+live dashboard, said the same thing: "Vocal stress signal relative to this speaker's own
+baseline."
+
+Checked against the actual code (not assumed): `arousal.probability` — the CNN's raw
+0–1 output, what the dashboard shows as the tension score — is the same trained model
+applied identically to every speaker; it is never adjusted per person.
+`entities.py`'s `flagged_turns(min_score=0.6)` and the dashboard's own
+`scoreClass`/`scoreColor` cutoffs (`app.js`, 0.66/0.4) are fixed thresholds applied to
+that raw, non-baseline-relative score. The only thing actually computed relative to a
+speaker's own first three turns is the separate set of prosodic z-scores
+(`baseline_deviation` — pitch, jitter, shimmer, speech rate deviations, ADR-003) reported
+*alongside* the score, not folded into it. The README's claim was wrong about the
+product's central mechanism; the disclaimer's claim was wrong in the product's own
+live output — a reviewer who read the code (exactly what this project's whole review
+discipline asks a judge to do) would have caught the second one directly on screen.
+
+**Decision.** Corrected wherever the false claim appeared, without changing any scoring
+behavior — this is a documentation/disclaimer accuracy fix, not a model or threshold
+change (no regression risk, no new test needed; nothing computed differently, only what
+is claimed about it):
+- `DECEPTION_VOCABULARY_DISCLAIMER` now states the score is "the same model for every
+  speaker, not adjusted per person" and names the baseline z-scores as "a separate
+  signal, shown alongside it" — mirrored in `ARCHITECTURE.md`'s worked evidence example
+  (§4) so the two stay consistent.
+- README.md's "What this is," "Who this is for," "Real results, honestly reported," and
+  "Running it" sections rewritten to state plainly: the tension score is absolute and
+  speaker-invariant; the z-score deviations are the genuinely baseline-relative signal;
+  the 0.6/0.66 flagging cutoffs are fixed thresholds on the raw score, by design (an
+  attention filter, not a per-speaker verdict) — not evidence the product avoids fixed
+  thresholds altogether.
+- `README.md`'s clone instructions corrected (`cd AssemblyAi` named the wrong directory;
+  the actual repo is `vocal-stress-copilot`) — a smaller, unrelated inaccuracy caught by
+  the same review, fixed in the same pass since it's the same class of "the doc says
+  something that isn't true."
+
+Full suite re-run: 300 passed — confirms this is purely a text change, unable to affect
+runtime behavior (no test imports or compares `DECEPTION_VOCABULARY_DISCLAIMER`'s literal
+content; the two tests that reference disclaimer-shaped text (`test_vocabulary_guard.py`,
+`test_web_backend.py`) use their own independent fixture strings, not this constant, so
+neither needed updating).
+
+**Consequences.**
+- Gained: the product's own live output no longer contradicts its own code — the single
+  most damaging category of finding a technical judge can make, worse than a README typo
+  because it's shown on screen, not read in a markdown file.
+- Gained: a documented, honest account of what's actually baseline-relative here (the
+  z-scores) versus what isn't (the raw score) — useful for anyone extending the scoring
+  logic later, since "relative to baseline" was previously asserted about the wrong
+  quantity throughout the project's own writing about itself.
+- **Given up**: this ADR does not address the reviewer's other, larger findings from the
+  same pass — baseline z-scores computed with `ddof=0` on n=3 calibration turns
+  (statistically fragile, could inflate reported deviations), the EU AI Act Article
+  5(1)(f) framing risk for an "HR" target audience, absent CI / unpinned dependency
+  versions, and documentation volume/tone. Recorded here so they aren't lost, not
+  resolved: each is a larger judgment call (statistical method change, product
+  positioning, new infrastructure, or a rewrite) that needs its own decision, not a
+  same-session fix five days from the deadline.
+
+---
+
 ---
 
 <a id="appendix-a"></a>

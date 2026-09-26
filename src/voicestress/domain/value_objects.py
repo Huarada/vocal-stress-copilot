@@ -230,8 +230,9 @@ class FeatureAttribution:
 
 
 DECEPTION_VOCABULARY_DISCLAIMER = (
-    "Vocal stress signal relative to this speaker's own baseline. "
-    "Not a determination of truthfulness."
+    "Vocal tension score from the acoustic model — the same model for every speaker, "
+    "not adjusted per person. Deviation from this speaker's own baseline is a separate "
+    "signal, shown alongside it. Not a determination of truthfulness."
 )
 
 # Single source of truth for the vocabulary ADR-001 forbids anywhere in this system.

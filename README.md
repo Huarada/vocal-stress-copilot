@@ -31,10 +31,17 @@ anything else. That constraint is enforced in code, not just in this paragraph.
 ## What this is (and is not)
 
 **It is:** a real-time voice agent that conducts a structured interview while a parallel
-acoustic pipeline measures *vocal tension deviation* per answer — relative to that same
-speaker's own opening turns, never to a population average — and a second agent explains
-those measurements conversationally to a human reviewer, grounded strictly in that
-session's own evidence.
+acoustic pipeline scores each answer's vocal tension, and a second agent explains those
+measurements conversationally to a human reviewer, grounded strictly in that session's own
+evidence.
+
+The tension *score* itself (the CNN's output, 0–1) is the same trained model applied to
+every speaker — it is not adjusted per person. What *is* relative to that same speaker's
+own opening turns, never to a population average, is the separate set of prosodic
+deviations (pitch, jitter, shimmer, speech rate, as z-scores against that speaker's first
+three answers) reported alongside the score — see [ADR-003](ADR.md#adr-003). The two are
+shown together in every turn's evidence precisely so a reviewer isn't left with only the
+absolute number.
 
 **It is not:** a lie detector. Voice-based deception detection is scientifically
 contested, and overclaiming it would be both dishonest and a scoring liability. Every
@@ -62,11 +69,12 @@ asks *why* they didn't move forward. "The candidate seemed a bit off on the comp
 question" is a real thing interviewers say to each other and almost never something a
 candidate hears back in a useful form.
 
-This system turns that into something structured: a per-answer vocal-tension signal,
-computed relative to *that candidate's own* baseline (not a population norm), with a
-concrete acoustic explanation attached (which frequency band the model attended to, which
-prosodic features deviated and by how much) — and an Analyst Agent a reviewer can
-interrogate about any turn before deciding what, if anything, to say to the candidate.
+This system turns that into something structured: a per-answer vocal-tension score, a
+separate set of prosodic deviations computed relative to *that candidate's own* baseline
+(not a population norm), a concrete acoustic explanation attached (which frequency band
+the model attended to, which prosodic features deviated and by how much) — and an Analyst
+Agent a reviewer can interrogate about any turn before deciding what, if anything, to say
+to the candidate.
 
 **This is a feedback and process-standardization tool, not a hiring-decision tool** — and
 that's a deliberate product choice, not a hedge. An automated system inferring emotion to
@@ -205,8 +213,8 @@ Windows/macOS/Linux — nothing extra to install), and, for the live agent only,
 microphone.
 
 ```bash
-git clone <this-repo>
-cd AssemblyAi
+git clone https://github.com/Huarada/vocal-stress-copilot.git
+cd vocal-stress-copilot
 
 python -m venv .venv
 .venv\Scripts\activate        # Windows
@@ -297,7 +305,8 @@ python scripts/run_interview.py
 Both live paths need `ASSEMBLYAI_API_KEY` set, `VOICESTRESS_ENABLE_LIVE_CAPTURE=true`,
 and the model checkpoint in place. The
 first three turns of every session are used to calibrate that speaker's own baseline —
-answer normally; scoring (relative to *that* baseline) starts from turn four.
+answer normally; the tension score is computed from turn one, but the baseline z-scores
+(the part actually relative to *that* speaker) only become available from turn four.
 
 **If port 8000 won't load or hangs indefinitely:** you likely have two server processes
 bound to it at once (easy to do by starting a second `uvicorn --reload` without stopping
@@ -351,10 +360,15 @@ training. Report the cross-corpus figure to anyone asking "how good is the model
 stop; the quality gates in `tests/quality_gates/` fail the build if either number drops
 below a threshold anchored to its own eval set's baseline, not an arbitrary target.
 
-This is *why* the product never uses a fixed threshold: every turn is scored relative to
-that speaker's own first few answers, not against a population norm the model is only
-weakly calibrated to in the first place. The weak cross-corpus number is the empirical
-argument for that design, not a footnote to hide.
+This is *why* the raw tension score is never treated as a verdict on its own: the CNN is
+only weakly calibrated across speakers (0.597), so it is the same model applied identically
+to everyone, not adjusted per person. The 0.6 cutoff used to flag a turn as elevated
+(`entities.py`'s `flagged_turns`) is a fixed threshold on that raw score, by design — it's
+an attention filter ("which turns are worth a reviewer's time"), not a calibrated
+per-speaker verdict. What *is* computed relative to that speaker's own first few answers is
+the separate set of prosodic z-scores reported alongside the score on every turn — the
+signal meant to compensate for exactly the weak cross-corpus number above. The weak number
+is the empirical argument for reporting both, not a footnote to hide.
 
 ## Project structure
 
